@@ -1,0 +1,25 @@
+Namelist for CHyM coupled model
+
+IOUT  : Switch for averaging interval of CHyM model output: 1=30d, 2=10d, 3=7d, 5=monthly
+5
+ISREAD: Read initialization file ( 0 = start from rest, 1 = read model initialization file)
+0
+UFAKRU: Unit factor applied to input arrays RUNOFFF and DRAIN (REMO --> mm/day)
+1.
+ISWRIT: time step for writing a restart file (0 = No)
+1
+UTHR: Drained area threshold by a mouth point above wich the river is considered in the coupled system
+5400.
+NSTEP : Number of time steps (days) the model should run 4749
+14640
+TIDATE : Start date of this run
+19790101
+TDNRES: File name of CHyM model restart file 
+chym_rst.nc
+TDNINI: File name of CHyM model initialization file
+chym_ini_fixed.nc
+TDNOUT: File name of CHyM model output file
+chym_dis.nc
+TDNSTK: File name of CHyM input static fields file
+chym_stk.nc
+The End

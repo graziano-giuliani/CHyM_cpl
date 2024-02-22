@@ -51,9 +51,9 @@
       call read_rec(ifile, 'ISWRIT', fdum, pname)
       iswrit = int(fdum+0.001)
       call read_rec(ifile, 'TIDATE', fdum, tdate)
-      read(tdate(1:4),'(i)') jahr1
-      read(tdate(5:6),'(i)') jahr2
-      read(tdate(7:8),'(i)') jahr3
+      read(tdate(1:4),'(i4)') jahr1
+      read(tdate(5:6),'(i2)') jahr2
+      read(tdate(7:8),'(i2)') jahr3
       print*,"year",jahr1,"month",jahr2,"day",jahr3
       call read_rec(ifile, 'NSTEP', fdum, pname)
       nstep = int(fdum+0.001)

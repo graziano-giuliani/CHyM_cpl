@@ -55,7 +55,7 @@
             endif
           enddo
         enddo
-        do ji = 2, chym_nlat-1
+        do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
             idir = int(fmap(i,j))
             ilnd = int(luse(i,j))

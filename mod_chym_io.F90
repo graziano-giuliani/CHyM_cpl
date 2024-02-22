@@ -112,7 +112,104 @@
 !     Set coefficients
 !-----------------------------------------------------------------------
 !
-      manning = 0.043
+      !manning = 0.043
+      manning( 1) = 10.0
+      manning( 2) = 0.040
+      manning( 3) = 0.150
+      manning( 4) = 0.100
+      manning( 5) = 0.100
+      manning( 6) = 0.100
+      manning( 7) = 0.650
+      manning( 8) = 0.030
+      manning( 9) = 0.030
+      manning(10) = 0.080
+      manning(11) = 0.030
+      manning(12) = 0.030
+      manning(13) = 0.080
+      manning(14) = 0.035
+      manning(15) = 0.035
+      manning(16) = 0.080
+      manning(17) = 0.080
+      manning(18) = 0.120
+      manning(19) = 0.150
+      manning(20) = 0.150
+      manning(21) = 0.150
+      manning(22) = 0.120
+      manning(23) = 0.100
+      manning(24) = 0.110
+      manning(25) = 0.110
+      manning(26) = 0.110
+      manning(27) = 0.150
+      manning(28) = 0.180
+      manning(29) = 0.180
+      manning(30) = 0.075
+      manning(31) = 0.250
+      manning(32) = 0.100
+      manning(33) = 0.180
+      manning(34) = 0.100
+      manning(35) = 0.075
+      manning(36) = 0.055
+      manning(37) = 0.055
+      manning(38) = 0.063
+      manning(39) = 0.060
+      manning(40) = 0.080
+      manning(41) = 0.080
+      manning(42) = 0.040
+      manning(43) = 0.100
+      manning(44) = 0.080
+      manning(45) = 0.080
+      manning(46) = 0.080
+      manning(47) = 0.080
+      manning(48) = 0.100
+      manning(49) = 0.030
+      manning(50) = 0.030
+      manning(51) = 0.030
+      manning(52) = 0.030
+      manning(53) = 0.030
+      manning(54) = 0.120
+      manning(55) = 0.075
+      manning(56) = 0.100
+      manning(57) = 0.100
+      manning(58) = 0.080
+      manning(58) = 0.080
+      manning(59) = 0.080
+      manning(60) = 0.100
+      manning(61) = 0.100
+      manning(62) = 0.150
+      manning(63) = 0.075
+      manning(64) = 0.080
+      manning(65) = 0.080
+      manning(66) = 0.080
+      manning(67) = 0.080
+      manning(68) = 0.080
+      manning(69) = 0.030
+      manning(70) = 0.030
+      manning(71) = 0.035
+      manning(72) = 0.075
+      manning(73) = 0.035
+      manning(74) = 0.035
+      manning(75) = 0.035
+      manning(76) = 0.035
+      manning(77) = 0.150
+      manning(78) = 0.120
+      manning(79) = 0.120
+      manning(80) = 0.035
+      manning(81) = 0.035
+      manning(82) = 0.035
+      manning(83) = 0.035
+      manning(84) = 0.035
+      manning(85) = 0.035
+      manning(86) = 0.030
+      manning(87) = 0.030
+      manning(88) = 0.050
+      manning(89) = 0.100
+      manning(91) = 0.100
+      manning(92) = 0.080
+      manning(93) = 0.045
+      manning(94) = 0.040
+      manning(95) = 0.120
+      manning(96) = 0.100
+      manning(97:lntypes) = 0.043
 !
 !-----------------------------------------------------------------------
 !     Open, read and close restart file
@@ -638,14 +735,15 @@
       implicit none
       integer i,j,idir,iland
       real mann
-      real alfamin,enne,gamma,delta,tresh,hrad
-      alfa=0.0
-      gamma=0.33
-      delta=4.5                                       !cpar(8) in CHyM
-      tresh=100.0                                     !cpar(6) in CHyM
-      alfamin=0.1
-      do j=2,chym_nlat-1
-        do i=2,chym_nlon-1
+      real alfamin,alfamax,enne,xgamma,delta,tresh,hrad
+      xgamma = 0.33
+      delta = 4.5                                       !cpar(8) in CHyM
+      tresh = 100.0                                     !cpar(6) in CHyM
+      alfamin = 0.1
+      alfamax = 50.0
+      alfa(:,:) = alfamin
+      do j = 2, chym_nlat-1
+        do i = 2, chym_nlon-1
           idir = int(fmap(i,j))
           iland = int(luse(i,j))
           mann = manning(iland)
@@ -655,21 +753,25 @@
               print*,"Error in line: 845   in file: mod_chym_io"
               call exit(0)
             end if
-            chym_dx(i,j)=geodistance(chym_lat(i,j),chym_lon(i,j),       &
+            chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
                  chym_lat(i+ir(idir),j+jr(idir)),                       &
                  chym_lon(i+ir(idir),j+jr(idir)))
-            if (chym_drai(i,j).gt.tresh) then
-               enne=mann/delta
+            if ( chym_drai(i,j) > tresh ) then
+               enne = mann/delta
             else
-               enne=mann/(1+(delta-1)*(1+(chym_drai(i,j)-tresh)/tresh))
+               enne = mann/ &
+                    (1.+(delta-1.)*(1.+(chym_drai(i,j)-tresh)/tresh))
             endif
-            hrad=0.0015+0.050*((chym_drai(i,j)*1.e00)**gamma)
             !In CHyM 0.0015 = cpar( 2) ---> Alpha coefficients for
             !hydraulic radius (0.0015)
             !In CHyM 0.050 = cpar( 3) ---> Beta coefficients for
             !hydraulic radius (0.050)
-            alfa(i,j)=((hrad**0.6666*accl(i,j)**0.5)/(enne))
-            if (alfa(i,j).lt.alfamin) alfa(i,j)=alfamin
+            hrad = 0.0015+0.050*((chym_drai(i,j)*1.e00)**xgamma)
+            alfa(i,j) = ((hrad**0.6666*accl(i,j)**0.5)/(enne))
+            if ( chym_drai(i,j) > 5000 .and. &
+                 alfa(i,j) > 0.5 ) alfa(i,j) = 0.5
+            if ( alfa(i,j) < alfamin ) alfa(i,j) = alfamin
+            if ( alfa(i,j) > alfamax ) alfa(i,j) = alfamax
           endif
         enddo
       enddo
@@ -677,21 +779,24 @@
 !
       real function geodistance(latt1,lonn1,latt2,lonn2)
       implicit none
-      real rad,dpi ; parameter(rad=6371000.0,dpi=6.2831855)
-      real latt1,lonn1,latt2,lonn2,lt1,lt2,ln1,ln2,x,y
-      lt1=latt1*dpi/360. ; lt2=latt2*dpi/360.
-      ln1=lonn1*dpi/360. ; ln2=lonn2*dpi/360.
-      if (abs(latt1-latt2).lt.0.2.and.abs(lonn1-lonn2).lt.0.2) then
-          x=(rad*cos(lt1)*(ln1-ln2))*(rad*cos(lt2)*(ln1-ln2))
-          y=(rad*(lt1-lt2))**2
-          geodistance=sqrt(x+y)
+      real, parameter :: rad = 6371000.0
+      real, parameter :: dpi = 6.2831855
+      real :: latt1,lonn1,latt2,lonn2,lt1,lt2,ln1,ln2,x,y
+      lt1 = latt1*dpi/360.
+      lt2 = latt2*dpi/360.
+      ln1 = lonn1*dpi/360.
+      ln2 = lonn2*dpi/360.
+      if ( abs(latt1-latt2) < 0.2 .and. &
+           abs(lonn1-lonn2) < 0.2 ) then
+          x = (rad*cos(lt1)*(ln1-ln2))*(rad*cos(lt2)*(ln1-ln2))
+          y = (rad*(lt1-lt2))**2
+          geodistancei = sqrt(x+y)
       else
-         x=sin(lt1)*sin(lt2)+cos(lt1)*cos(lt2)*cos((ln1)-(ln2))
-         if (x.gt.1) x=1.0
-         geodistance=acos(x)*rad
+         x = sin(lt1)*sin(lt2)+cos(lt1)*cos(lt2)*cos((ln1)-(ln2))
+         if ( x > 1.0 ) x = 1.0
+         geodistance = acos(x)*rad
       endif
-      if (geodistance.lt.0.1) geodistance=0.1
-      return
+      if ( geodistance < 0.1 ) geodistance = 0.1
       end function geodistance
 
       end module mod_chym_io

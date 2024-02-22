@@ -39,10 +39,10 @@
       chym_dis = -1.0
       step = 600           !Number of step per days
       deltat = 86400/step
-      do imin=1,step
-        wkm1=0.0
-        do j=2,chym_nlat-1
-          do i=2,chym_nlon-1
+      do imin = 1, step
+        wkm1 = 0.0
+        do j = 2, chym_nlat-1
+          do i = 2, chym_nlon-1
             idir = int(fmap(i,j))
             ilnd = int(luse(i,j))
             if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
@@ -55,20 +55,21 @@
             endif
           enddo
         enddo
-        do j=2,chym_nlat-1
-          do i=2,chym_nlon-1
+        do ji = 2, chym_nlat-1
+          do i = 2, chym_nlon-1
             idir = int(fmap(i,j))
             ilnd = int(luse(i,j))
             if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
-               rainload=chym_area(i,j)*1.0e+06*(chym_runoff(i,j)+       &
-                  chym_surf(i,j))*deltat !m3 of water recharge in the  grid cell
+               ! m3 of water recharge in the  grid cell
+               rainload = chym_area(i,j)*1.0e+06*(chym_runoff(i,j)+    &
+                  chym_surf(i,j))*deltat
                if (rainload.gt.200000.0) then
                 write(*,fmt='(A,F8.2)')"*WARNING VERY BIG RAINLOAD*:",&
                                        rainload
                endif
-               h2o(i,j)=h2o(i,j)+wkm1(i,j)+rainload
-               bwet(i,j)=h2o(i,j)/chym_dx(i,j)
-               port(i,j)=alfa(i,j)*bwet(i,j)
+               h2o(i,j) = h2o(i,j) + wkm1(i,j) + rainload
+               bwet(i,j) = h2o(i,j) / chym_dx(i,j)
+               port(i,j) = alfa(i,j) * bwet(i,j)
             endif
           enddo
         enddo

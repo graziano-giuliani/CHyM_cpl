@@ -790,7 +790,7 @@
            abs(lonn1-lonn2) < 0.2 ) then
           x = (rad*cos(lt1)*(ln1-ln2))*(rad*cos(lt2)*(ln1-ln2))
           y = (rad*(lt1-lt2))**2
-          geodistancei = sqrt(x+y)
+          geodistance = sqrt(x+y)
       else
          x = sin(lt1)*sin(lt2)+cos(lt1)*cos(lt2)*cos((ln1)-(ln2))
          if ( x > 1.0 ) x = 1.0

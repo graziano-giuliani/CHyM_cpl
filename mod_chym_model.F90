@@ -1,31 +1,31 @@
-      module mod_chym_model
+module mod_chym_model
 !
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
 !
-      use mod_chym_param
+    use mod_chym_param
 !
-      implicit none
-      private
+    implicit none
+    private
 !
 !-----------------------------------------------------------------------
 !     Public subroutines
 !-----------------------------------------------------------------------
 !
-      public :: chymmodel
+    public :: chymmodel
 !
-      contains
+    contains
 !
-      subroutine chymmodel(chym_runoff,chym_surf,chym_dis,imon,iday)
+    subroutine chymmodel(chym_runoff,chym_surf,chym_dis,imon,iday)
       implicit none
 !
 !-----------------------------------------------------------------------
 !     Imported variable declarations
 !-----------------------------------------------------------------------
 !
-      real, intent(in) :: chym_runoff(:,:)
-      real, intent(in) :: chym_surf(:,:)
+      real, intent(in) :: chym_runoff(:,:) ! m/s
+      real, intent(in) :: chym_surf(:,:)   ! m/s
       real, intent(inout) :: chym_dis(:,:)
       integer, intent(in) :: imon, iday
 !
@@ -33,47 +33,51 @@
 !     Local variable declarations
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, imin, ilnd, deltat, rainload,idir,step
-      real :: dm
+      integer :: i, j, ii, jj, imin, ilnd, idir
+      real :: dm, step, area, deltat, rainload
 
-      chym_dis = -1.0
-      step = 600           !Number of step per days
-      deltat = 86400/step
+      chym_dis(:,:) = -1.0
+      step = 600.0         ! Number of step per days
+      deltat = 86400.0/step
       do imin = 1, step
-        wkm1 = 0.0
+        wkm1(:,:) = 0.0
         do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
             idir = int(fmap(i,j))
             ilnd = int(luse(i,j))
             if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
+              ii = i+ir(idir)
+              jj = j+jr(idir)
               dm = port(i,j)*deltat
-!              write(6,'(12x,2i4,2f9.4)') i,j,dm,port(i,j)
-              if (dm.gt.h2o(i,j)) dm=h2o(i,j)
-              wkm1(i,j)=wkm1(i,j)-dm
-!              write(6,'(12x,2i4,2f9.4)') i,j,wkm1(i,j),port(i,j)
-              wkm1(i+ir(idir),j+jr(idir))=wkm1(i+ir(idir),j+jr(idir))+dm
-            endif
-          enddo
-        enddo
+!             write(6,'(12x,2i4,2f9.4)') i,j,dm,port(i,j)
+              wkm1(i,j) = wkm1(i,j) - dm
+!             write(6,'(12x,2i4,2f9.4)') i,j,wkm1(i,j),port(i,j)
+              wkm1(ii,jj) = wkm1(ii,jj) + dm
+            end if
+          end do
+        end do
         do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
             idir = int(fmap(i,j))
             ilnd = int(luse(i,j))
             if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
-               ! m3 of water recharge in the  grid cell
-               rainload = chym_area(i,j)*1.0e+06*(chym_runoff(i,j)+    &
-                  chym_surf(i,j))*deltat
-               if (rainload.gt.200000.0) then
-                write(*,fmt='(A,F8.2)')"*WARNING VERY BIG RAINLOAD*:",&
+               ! m^3 of water recharge in the grid cell
+               ! Area in the input file is in km^2, we put it in m^2
+               ! m^2 * m/s * s = m^3
+               area = chym_area(i,j)*1.0e+06
+               rainload = area*(chym_runoff(i,j)+chym_surf(i,j))*deltat
+               if (rainload > 200000.0) then
+                 write(*,fmt='(A,F8.2)')"*WARNING VERY BIG RAINLOAD*:",&
                                        rainload
                endif
                h2o(i,j) = h2o(i,j) + wkm1(i,j) + rainload
+               h2o(i,j) = max(h2o(i,j),0.0)
                bwet(i,j) = h2o(i,j) / chym_dx(i,j)
                port(i,j) = alfa(i,j) * bwet(i,j)
-            endif
-          enddo
-        enddo
-      enddo
+            end if
+          end do
+        end do
+      end do
 
       do j = 2 , chym_nlat-1
         do i = 2 , chym_nlon-1
@@ -116,7 +120,6 @@
                              maxval(chym_runoff)
       write(*,fmt='(A,F16.2)')"chym_surf max value:    ",              &
                              maxval(chym_surf)
-!!
-      end subroutine chymmodel
-!!
-      end module mod_chym_model
+    end subroutine chymmodel
+
+end module mod_chym_model

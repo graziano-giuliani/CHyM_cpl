@@ -753,6 +753,7 @@
               print*,"Error in line: 845   in file: mod_chym_io"
               call exit(0)
             end if
+            ! This is in meters
             chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
                  chym_lat(i+ir(idir),j+jr(idir)),                       &
                  chym_lon(i+ir(idir),j+jr(idir)))

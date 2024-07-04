@@ -34,11 +34,13 @@ module mod_chym_model
 !-----------------------------------------------------------------------
 !
       integer :: i, j, ii, jj, imin, ilnd, idir
-      real :: dm, step, area, deltat, rainload
+      real :: dm, step, area, deltat, rainload, tmp
 
       chym_dis(:,:) = -1.0
+
       step = 600.0         ! Number of step per days
       deltat = 86400.0/step
+      oro = chym_runoff + chym_surf
       do imin = 1, step
         wkm1(:,:) = 0.0
         do j = 2, chym_nlat-1
@@ -89,24 +91,37 @@ module mod_chym_model
               chym_dis(i,j) = port(i,j)
             end if
           end if
-#ifdef NILE
-          ! Booca 1 : Lat 31.52, Lon 31.84 (Damietta) 50%
-          ! Bocca 2 : Lat 31.47, Lon 30.36 (Rosetta)  50%
-          if ( sqrt(((lat1(j)-31.525)**2 + &
-                     (lon1(i)-31.843)**2)) < 0.5*fscal .or. &
-               sqrt(((lat1(j)-31.467)**2 + &
-                     (lon1(i)-30.366)**2)) < 0.5*fscal ) then
-            chym_dis(i,j) = 0.5 * mval(nile_fresh_flux,imon,iday)
-          end if
-#endif
-#ifdef BLACKSEA
-          if ( sqrt(((lat1(j)-40.00)**2 + &
-                     (lon1(i)-26.16)**2)) < 0.5*fscal ) then
-            chym_dis(i,j) = mval(bs_fresh_flux,imon,iday)
-          end if
-#endif
         end do
       end do
+
+#ifdef AZOV
+      tmp = 0.0
+      do j = 2 , chym_nlat-1
+        do i = 2 , chym_nlon-1
+          if ( lat1(j) > 45.00 .and. lon1(i) > 34.0 ) then
+            if ( chym_dis(i,j) > 0.0 ) then
+              tmp = tmp + chym_dis(i,j)
+              chym_dis(i,j) = -1.0
+            end if
+          end if
+        end do
+      end do
+      chym_dis(ikerch,jkerch) = tmp
+      write(*,fmt='(A,F16.2)') "Azov sea added up discharge value:   ",tmp
+#endif
+
+#ifdef NILE
+      tmp = 0.5 * mval(nile_fresh_flux,imon,iday)
+      chym_dis(idamietta,jdamietta) = tmp
+      chym_dis(irosetta,jrosetta) = tmp
+      write(*,fmt='(A,F16.2)') "Prescribed Nile discharge :   ",tmp*2
+#endif
+
+#ifdef BLACKSEA
+      tmp = mval(bs_fresh_flux,imon,iday)
+      chym_dis(idardanelli,jdardanelli) = tmp
+      write(*,fmt='(A,F16.2)') "Prescribed Dardanelli BS output :   ",tmp
+#endif
 
       write(*,fmt='(A,F16.2)')"Discharge max value:   ",maxval(port)
       write(*,fmt='(A,F16.2)')"Bwet max value:   ",maxval(bwet)

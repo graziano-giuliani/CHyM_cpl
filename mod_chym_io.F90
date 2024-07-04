@@ -372,7 +372,7 @@
 !-----------------------------------------------------------------------
 !
       if (.not. allocated(chymout%dimid)) allocate(chymout%dimid(3))
-      if (.not. allocated(chymout%varid)) allocate(chymout%varid(4))
+      if (.not. allocated(chymout%varid)) allocate(chymout%varid(5))
 !
       call nio_check(nf90_create(trim(dnout), nf90_clobber,             &
                                   chymout%ncid))
@@ -424,6 +424,12 @@
       call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
                      'long_name', 'River Discharge'))
       call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
+                     'missing_value', 1.0e20))
+      call nio_check(nf90_def_var(chymout%ncid, 'ro', nf90_real,        &
+                     chymout%dimid, chymout%varid(5)))
+      call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
+                     'long_name', 'Atmosphere Runoff'))
+      call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
                      'missing_value', 1.0e20))
 !
 !-----------------------------------------------------------------------
@@ -587,6 +593,8 @@
       count = (/ nlc, nbc, 1, 1 /)
       call nio_check(nf90_put_var(chymout%ncid, chymout%varid(4),       &
                      port, start, count))
+      call nio_check(nf90_put_var(chymout%ncid, chymout%varid(5),       &
+                     oro, start, count))
 !
 !-----------------------------------------------------------------------
 !     Sync file

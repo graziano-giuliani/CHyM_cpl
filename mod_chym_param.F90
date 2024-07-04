@@ -117,12 +117,19 @@ module mod_chym_param
 !
   real, allocatable :: chym_runoff(:,:)
   real, allocatable :: chym_surf(:,:)
+  real, allocatable :: oro(:,:)
   real, allocatable :: chym_dis(:,:)
 
 #ifdef NILE
   real, parameter, dimension(12) :: nile_fresh_flux = &
       [ 336,  396,  407,  399,  472,  615,  &
         634,  557,  412,  373,  372,  352]
+  integer :: idamietta , jdamietta
+  integer :: irosetta , jrosetta
+  real , parameter :: lat_damietta = 31.44
+  real , parameter :: lon_damietta = 31.56
+  real , parameter :: lat_rosetta = 31.42
+  real , parameter :: lon_rosetta = 30.44
 #endif
 #ifdef BLACKSEA
   ! Kourafalou, V. H. and Barbopoulos, K.: High resolution
@@ -155,6 +162,17 @@ module mod_chym_param
   real, parameter, dimension(12) :: bs_fresh_flux = &
       [1600, 2000, 2500, 4100, 4800, 5200, &
        5200, 4300, 3300, 2400, 1700, 1400]
+  real, parameter :: lat_dardanelli = 40.0
+  real, parameter :: lon_dardanelli = 26.16
+  integer :: idardanelli , jdardanelli
+#endif
+
+#ifdef AZOV
+  integer :: ikerch , jkerch
+  ! Control factor for discharge from azov sea
+  real , parameter :: azovfac = 1.00
+  real , parameter :: lon_kerch = 36.53
+  real , parameter :: lat_kerch = 45.00
 #endif
 
   contains

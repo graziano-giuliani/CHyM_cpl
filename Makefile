@@ -1,11 +1,12 @@
 FC = mpiifort
 #FC = mpifort
-PRESCRIBED = -DNILE -DAZOV # -DBLACKSEA
+PRESCRIBED = -DNILE # -DAZOV -DBLACKSEA
 # PRODUCTION
 FCFLAGS = -O3 -fp-model precise -fp-model source -DCPL $(PRESCRIBED)
 #FCFLAGS = -O3 -DCPL $(PRESCRIBED)
 # DEBUG
 #FCFLAGS = -O0 -g -Warn all -check all -traceback -DCPL $(PRESCRIBED)
+#FCFLAGS = -O0 -g -Wall -pedantic -fcheck=all -fbacktrace -DCPL $(PRESCRIBED)
 CPPFLAGS = `nf-config --fflags`
 LIBS = `nf-config --flibs`
 APP = chymmain.x

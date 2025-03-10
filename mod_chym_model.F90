@@ -33,21 +33,21 @@ module mod_chym_model
 !     Local variable declarations
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, imin, ilnd, idir
-      real :: dm, step, area, deltat, rainload, tmp
+      integer :: i, j, ii, jj, imin, ilnd, idir, step
+      real :: dm, area, deltat, rainload, tmp
 
       chym_dis(:,:) = -1.0
 
-      step = 600.0         ! Number of step per days
-      deltat = 86400.0/step
+      step = 600        ! Number of step per days
+      deltat = 86400.0/real(step)
       oro = chym_runoff + chym_surf
       do imin = 1, step
         wkm1(:,:) = 0.0
         do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
-            idir = int(fmap(i,j))
-            ilnd = int(luse(i,j))
-            if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
+            idir = fmap(i,j)
+            ilnd = luse(i,j)
+            if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
               ii = i+ir(idir)
               jj = j+jr(idir)
               dm = port(i,j)*deltat
@@ -60,9 +60,9 @@ module mod_chym_model
         end do
         do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
-            idir = int(fmap(i,j))
-            ilnd = int(luse(i,j))
-            if ( ilnd .ne. mare .and. idir .ge. 1 .and. idir .le. 8 ) then
+            idir = fmap(i,j)
+            ilnd = luse(i,j)
+            if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
                ! m^3 of water recharge in the grid cell
                ! Area in the input file is in km^2, we put it in m^2
                ! m^2 * m/s * s = m^3
@@ -83,11 +83,11 @@ module mod_chym_model
 
       do j = 2 , chym_nlat-1
         do i = 2 , chym_nlon-1
-          idir = int(fmap(i,j))
+          idir = fmap(i,j)
           if ( idir >= 1 .and. idir <= 8 ) then
-            ilnd = int(luse(i+ir(idir),j+jr(idir)))
+            ilnd = luse(i+ir(idir),j+jr(idir))
             !5400 km^2 ~ 6 grid points, with resolution of 33km, drained
-            if ( chym_drai(i,j) > thrriv .and. ilnd == mare ) then
+            if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
               chym_dis(i,j) = port(i,j)
             end if
           end if
@@ -98,7 +98,7 @@ module mod_chym_model
       tmp = 0.0
       do j = 2 , chym_nlat-1
         do i = 2 , chym_nlon-1
-          if ( lat1(j) > 45.00 .and. lon1(i) > 34.0 ) then
+          if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
             if ( chym_dis(i,j) > 0.0 ) then
               tmp = tmp + chym_dis(i,j)
               chym_dis(i,j) = -1.0

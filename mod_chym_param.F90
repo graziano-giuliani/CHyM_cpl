@@ -9,14 +9,11 @@ module mod_chym_param
 !     fscal: resolution of the model
 !-----------------------------------------------------------------------
 !
-  integer, parameter :: nlc = 868
-  integer, parameter :: nbc = 461
-  real, parameter :: fscal = 0.06
-  real, parameter :: lon0 = -5.76
-  real, parameter :: lat0 = 28.26
+  integer :: nlc
+  integer :: nbc
+  integer :: chym_nlon
+  integer :: chym_nlat
   real, parameter :: umfang = 360.0
-! real, dimension(600) :: lon
-! real, dimension(480) :: lat
   real, allocatable :: areadom(:)
   integer, allocatable :: pointn(:)
   integer, allocatable :: npoint(:)
@@ -24,16 +21,6 @@ module mod_chym_param
   integer ir(9),jr(9)
   data ir /-1, 0, 1, 1, 1, 0,-1,-1,0/
   data jr / 1, 1, 1, 0,-1,-1,-1, 0,0/
-!
-!-----------------------------------------------------------------------
-!     AO model grid dimensions
-!
-!     nlon: longitudes of global ocean grid
-!     nlat: atitudes of global ocean grid
-!-----------------------------------------------------------------------
-!
-  integer, parameter :: chym_nlon = 868
-  integer, parameter :: chym_nlat = 461
 !
 !-----------------------------------------------------------------------
 !     CHYM model I/O unit params
@@ -85,11 +72,11 @@ module mod_chym_param
   ! Effective water flow velocity (m/s)
   real, allocatable :: alfa(:,:)
   ! Flow directions map
-  real, allocatable :: fmap(:,:)
+  integer, allocatable :: fmap(:,:)
   ! Acclivity map
   real, allocatable :: accl(:,:)
   ! Land use from CHyM
-  real, allocatable :: luse(:,:)
+  integer, allocatable :: luse(:,:)
   ! BWET CHyM
   real, allocatable :: bwet(:,:)
   ! port CHyM
@@ -104,13 +91,14 @@ module mod_chym_param
   real, allocatable :: chym_lat(:,:)
   ! CHyM lon
   real, allocatable :: chym_lon(:,:)
-  ! CHyM lat1
-  real, allocatable :: lat1(:)
-  ! CHyM lon1
-  real, allocatable :: lon1(:)
+  ! CHyM corner lat
+  real, allocatable :: corner_lat(:,:,:)
+  ! CHyM corner lon
+  real, allocatable :: corner_lon(:,:,:)
+
 
   integer, parameter :: lntypes = 110
-  integer, parameter :: mare = 15
+  integer, parameter :: ocean = 15
   integer, parameter :: nmemrf = 5
   integer, parameter :: nmemlf = 1
   integer, parameter :: mm = 4
@@ -126,10 +114,10 @@ module mod_chym_param
         634,  557,  412,  373,  372,  352]
   integer :: idamietta , jdamietta
   integer :: irosetta , jrosetta
-  real , parameter :: lat_damietta = 31.44
-  real , parameter :: lon_damietta = 31.56
-  real , parameter :: lat_rosetta = 31.42
-  real , parameter :: lon_rosetta = 30.44
+  real , parameter :: lat_damietta = 31.52
+  real , parameter :: lon_damietta = 31.83
+  real , parameter :: lat_rosetta = 31.46
+  real , parameter :: lon_rosetta = 30.36
 #endif
 #ifdef BLACKSEA
   ! Kourafalou, V. H. and Barbopoulos, K.: High resolution
@@ -147,12 +135,12 @@ module mod_chym_param
   ! García-García, D., Vigo, M.I., Trottini, M. et al. Hydrological
   ! cycle of the Mediterranean-Black Sea system. Clim Dyn 59,
   ! 1919–1938 (2022). https://doi.org/10.1007/s00382-022-06188-2
-  ! 
+  !
   ! Total outflow from Black Sea to Mediterranean from EPR balance
   !        275 ± 59 km3/year => 8714 ± 1871 m^3/s
   !
   ! Mediterranean average salinity : 38.40 (Encyclopedia Britannica)
-  ! 
+  !
   !  Used formula for FRESHWATER FLUX:
   !
   !        round(8714 * MOT2/10000 * (38.40-SAT2)/38.40)
@@ -163,7 +151,7 @@ module mod_chym_param
       [1600, 2000, 2500, 4100, 4800, 5200, &
        5200, 4300, 3300, 2400, 1700, 1400]
   real, parameter :: lat_dardanelli = 40.0
-  real, parameter :: lon_dardanelli = 26.16
+  real, parameter :: lon_dardanelli = 26.18
   integer :: idardanelli , jdardanelli
 #endif
 
@@ -172,10 +160,50 @@ module mod_chym_param
   ! Control factor for discharge from azov sea
   real , parameter :: azovfac = 1.00
   real , parameter :: lon_kerch = 36.53
-  real , parameter :: lat_kerch = 45.00
+  real , parameter :: lat_kerch = 45.11
 #endif
 
   contains
+
+  logical function is_inbox(lat,lon,clat,clon)
+    implicit none
+    real, intent(in) :: lat, lon
+    real, dimension(4), intent(in) :: clat, clon
+    real :: m1, b1, m2, b2, m3, b3, m4, b4
+    logical :: l1, l2, l3, l4
+    is_inbox = .false.
+
+    ! ASSUME NON PATOLOGICAL CASES, i.e. clon, clat proper quadrilater.
+    if ( clat(1) /= clat(2) ) then
+      m1 = (clat(1)-clat(2))/(clon(1)-clon(2))
+      b1 = (clon(1)*clat(2)-clon(2)*clat(1))/(clon(1)-clon(2))
+      l1 = (lat > m1*lon+b1)
+    else
+      l1 = lat > clat(1)
+    end if
+    if ( clat(3) /= clat(4) ) then
+      m2 = (clat(3)-clat(4))/(clon(3)-clon(4))
+      b2 = (clon(3)*clat(4)-clon(4)*clat(3))/(clon(3)-clon(4))
+      l2 = lat < m2*lon+b2
+    else
+      l2 = lat < clat(3)
+    end if
+    if ( clon(1) /= clon(4) ) then
+      m3 = (clon(1)-clon(4))/(clat(1)-clat(4))
+      b3 = (clat(1)*clon(4)-clat(4)*clon(1))/(clat(1)-clat(4))
+      l3 = lon > m3*lat+b3
+    else
+      l3 = lon > clon(1)
+    end if
+    if ( clon(2) /= clon(3) ) then
+      m4 = (clon(2)-clon(3))/(clat(2)-clat(3))
+      b4 = (clat(2)*clon(3)-clat(3)*clon(2))/(clat(2)-clat(3))
+      l4 = lon < m4*lat+b4
+    else
+      l4 = lon < clon(3)
+    end if
+    is_inbox = l1 .and. l2 .and. l3 .and. l4
+  end function is_inbox
 
   real function mval(series,imon,iday)
     implicit none

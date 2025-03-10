@@ -25,7 +25,6 @@
       subroutine chym_init(imon, iday)
       implicit none
       integer, intent(in) :: imon, iday
-      real :: dlatlon
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations
@@ -73,35 +72,14 @@
       conta = 0
       chym_dis(:,:) = -1.0
 
-      dlatlon = lon1(2)-lon1(1)
-
-#ifdef AZOV
-      ikerch = int((lon_kerch-lon1(1))/dlatlon)
-      jkerch = int((lat_kerch-lat1(1))/dlatlon)
-#endif
-
-#ifdef NILE
-      ! Booca 1 : Lat 31.52, Lon 31.84 (Damietta) 50%
-      ! Bocca 2 : Lat 31.47, Lon 30.36 (Rosetta)  50%
-      idamietta = int((lon_damietta-lon1(1))/dlatlon)
-      jdamietta = int((lat_damietta-lat1(1))/dlatlon)
-      irosetta = int((lon_rosetta-lon1(1))/dlatlon)
-      jrosetta = int((lat_rosetta-lat1(1))/dlatlon)
-#endif
-
-#ifdef BLACKSEA
-      idardanelli = int((lon_dardanelli-lon1(1))/dlatlon)
-      jdardanelli = int((lat_dardanelli-lat1(1))/dlatlon)
-#endif
-
       if ( isread == 1 ) then
 
         do j = 2 , chym_nlat-1
           do i = 2 , chym_nlon-1
-            idir = int(fmap(i,j))
+            idir = fmap(i,j)
             if ( idir >= 1 .and. idir <= 8 ) then
-              ilnd = int(luse(i+ir(idir),j+jr(idir)))
-              if ( chym_drai(i,j) > thrriv .and. ilnd == mare ) then
+              ilnd = luse(i+ir(idir),j+jr(idir))
+              if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
                 chym_dis(i,j) = port(i,j)
                 conta = conta + 1
               end if
@@ -114,7 +92,7 @@
         conta = conta + 1
         do j = 2 , chym_nlat-1
           do i = 2 , chym_nlon-1
-            if ( lat1(j) > 45.00 .and. lon1(i) > 34.0 ) then
+            if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
               if ( chym_dis(i,j) > 0.0 ) then
                 chym_dis(ikerch,jkerch) = chym_dis(ikerch,jkerch) + &
                                chym_dis(i,j)
@@ -142,24 +120,22 @@
       else
 
 #ifdef CPL
-
         do j = 2 , chym_nlat-1
           do i = 2 , chym_nlon-1
-            idir = int(fmap(i,j))
+            idir = fmap(i,j)
             if ( idir >= 1 .and. idir <= 8 ) then
-              ilnd = int(luse(i+ir(idir),j+jr(idir)))
-              if ( chym_drai(i,j) > thrriv .and. ilnd == mare ) then
+              ilnd = luse(i+ir(idir),j+jr(idir))
+              if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
                 chym_dis(i,j) = 1.0
                 conta = conta + 1
               end if
             end if
           end do
         end do
-
 #ifdef AZOV
         do j = 2 , chym_nlat-1
           do i = 2 , chym_nlon-1
-            if ( lat1(j) > 45.00 .and. lon1(i) > 34.0 ) then
+            if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
               if ( chym_dis(i,j) > 0.0 ) then
                 chym_dis(i,j) = -1.0
                 conta = conta - 1
@@ -237,7 +213,13 @@
 !-----------------------------------------------------------------------
 !     Run the model
 !-----------------------------------------------------------------------
+#ifndef CPL
 !
+!     Fake runoff to test
+!
+      chym_runoff = 1.0e-7
+      chym_surf = 2.0e-7
+#endif
       call chymmodel(chym_runoff, chym_surf, chym_dis, imon, iday)
 !
 !-----------------------------------------------------------------------

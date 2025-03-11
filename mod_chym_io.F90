@@ -81,6 +81,8 @@ module mod_chym_io
 !
     integer :: i,j,ii,jj,idir,ilnd
     integer :: ncid, varid, dimid
+    integer , dimension(2) :: idimid
+    integer , dimension(3) :: ivarid
     integer :: contat
 
     call nio_check(nf90_open(trim(chym_statikin), nf90_nowrite, ncid))
@@ -119,7 +121,7 @@ module mod_chym_io
     wkm1 = 0
     bwet = 0
     h2o = 0
-    chym_lsm(:,:) = 1.0
+    chym_lsm(:,:) = 0.0
 
     call nio_check(nf90_inq_varid(ncid, 'manning', varid))
     call nio_check(nf90_get_var(ncid, varid, manning))
@@ -160,7 +162,7 @@ module mod_chym_io
         if ( idir >= 1 .and. idir <= 8 ) then   !5400 km^2 ~ 6 grid
           ilnd = luse(i+ir(idir),j+jr(idir))
           if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-            chym_lsm(i,j) = 0.0
+            chym_lsm(i,j) = 1.0
             contat = contat + 1
           end if
         end if
@@ -172,7 +174,7 @@ module mod_chym_io
           call find_nearest_land(i,j,ii,jj)
           idamietta = ii
           jdamietta = jj
-          chym_lsm(ii,jj) = 0.0
+          chym_lsm(ii,jj) = 1.0
           contat = contat + 1
           print *, 'Damietta is at ',ii,jj
         end if
@@ -181,7 +183,7 @@ module mod_chym_io
           call find_nearest_land(i,j,ii,jj)
           irosetta = ii
           jrosetta = jj
-          chym_lsm(ii,jj) = 0.0
+          chym_lsm(ii,jj) = 1.0
           contat = contat + 1
           print *, 'Rosetta is at ',ii,jj
         end if
@@ -192,7 +194,7 @@ module mod_chym_io
           call find_nearest_land(i,j,ii,jj)
           idardanelli = ii
           jdardanelli = jj
-          chym_lsm(ii,jj) = 0.0
+          chym_lsm(ii,jj) = 1.0
           contat = contat + 1
           print *, 'Dardanelli is at ',ii,jj
         end if
@@ -203,7 +205,7 @@ module mod_chym_io
           call find_nearest_land(i,j,ii,jj)
           ikerch = ii
           jkerch = jj
-          chym_lsm(ii,jj) = 0.0
+          chym_lsm(ii,jj) = 1.0
           contat = contat + 1
           print *, 'Kerch is at ',ii,jj
         end if
@@ -212,7 +214,29 @@ module mod_chym_io
     end do
     call runoffspeed
 !
-    print*,"Number of river mouths found : ",contat
+    call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid))
+    call nio_check(nf90_def_dim(ncid,'lon',nlc,idimid(1)))
+    call nio_check(nf90_def_dim(ncid,'lat',nbc,idimid(2)))
+    call nio_check(nf90_def_var(ncid,'lon',nf90_real,idimid, ivarid(1)))
+    call nio_check(nf90_put_att(ncid,ivarid(1),'standard_name','longitude'))
+    call nio_check(nf90_put_att(ncid,ivarid(1),'long_name','Longitude'))
+    call nio_check(nf90_put_att(ncid,ivarid(1),'units','degrees_east'))
+    call nio_check(nf90_def_var(ncid,'lat',nf90_real,idimid,ivarid(2)))
+    call nio_check(nf90_put_att(ncid,ivarid(2),'standard_name','latitude'))
+    call nio_check(nf90_put_att(ncid,ivarid(2),'long_name','Latitude'))
+    call nio_check(nf90_put_att(ncid,ivarid(2),'units','degrees_north'))
+    call nio_check(nf90_def_var(ncid,'lsm',nf90_real,idimid,ivarid(3)))
+    call nio_check(nf90_put_att(ncid,ivarid(3),'standard_name','binary_mask'))
+    call nio_check(nf90_put_att(ncid,ivarid(3),'long_name','River Mouths'))
+    call nio_check(nf90_put_att(ncid,ivarid(3),'units','1'))
+    call nio_check(nf90_put_att(ncid,ivarid(3),'coordinates','lat lon'))
+    call nio_check(nf90_enddef(ncid))
+    call nio_check(nf90_put_var(ncid,ivarid(1), chym_lon))
+    call nio_check(nf90_put_var(ncid,ivarid(2), chym_lat))
+    call nio_check(nf90_put_var(ncid,ivarid(3), chym_lsm))
+    call nio_check(nf90_close(ncid))
+    print*,"Diagnostic mouth position file created"
+    print*,"Total number of river mouths found : ",contat
   end subroutine read_init
 !
   subroutine find_nearest_land(i,j,ii,jj)

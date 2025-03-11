@@ -393,12 +393,16 @@ module mod_chym_io
                      'long_name', 'River Discharge'))
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
                      'missing_value', 1.0e20))
+    call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
+                     'coordinates', 'lat lon'))
     call nio_check(nf90_def_var(chymout%ncid, 'ro', nf90_real,        &
                      chymout%dimid, chymout%varid(5)))
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
                      'long_name', 'Atmosphere Runoff'))
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
                      'missing_value', 1.0e20))
+    call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
+                     'coordinates', 'lat lon'))
 !
 !-----------------------------------------------------------------------
 !     Exit define mode
@@ -496,12 +500,16 @@ module mod_chym_io
                      'long_name', 'River Discharge'))
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
                      'missing_value', 1.0e20))
+    call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
+                     'coordinates', 'lat lon'))
     call nio_check(nf90_def_var(chymrst%ncid, 'h2o', nf90_real,       &
                      chymrst%dimid, chymrst%varid(5)))
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
                      'long_name', 'Total water'))
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
                      'missing_value', 1.0e20))
+    call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
+                     'coordinates', 'lat lon'))
 !
 !-----------------------------------------------------------------------
 !     Exit define mode

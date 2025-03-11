@@ -31,7 +31,6 @@
 !-----------------------------------------------------------------------
 !
       integer :: i,j,idir,ilnd
-      integer :: conta
 !
 !-----------------------------------------------------------------------
 !     Read configuration parameters
@@ -69,8 +68,7 @@
       if (.not. allocated(oro)) &
            allocate(oro(chym_nlon,chym_nlat))
 
-      conta = 0
-      chym_dis(:,:) = -1.0
+      chym_dis(:,:) = 0.0
 
       if ( isread == 1 ) then
 
@@ -81,7 +79,6 @@
               ilnd = luse(i+ir(idir),j+jr(idir))
               if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
                 chym_dis(i,j) = port(i,j)
-                conta = conta + 1
               end if
             end if
           end do
@@ -89,15 +86,13 @@
 
 #ifdef AZOV
         chym_dis(ikerch,jkerch) = 0.0
-        conta = conta + 1
         do j = 2 , chym_nlat-1
           do i = 2 , chym_nlon-1
             if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
               if ( chym_dis(i,j) > 0.0 ) then
                 chym_dis(ikerch,jkerch) = chym_dis(ikerch,jkerch) + &
                                chym_dis(i,j)
-                chym_dis(i,j) = -1.0
-                conta = conta - 1
+                chym_dis(i,j) = 0.0
               end if
             end if
           end do
@@ -107,59 +102,12 @@
 #ifdef NILE
         chym_dis(idamietta,jdamietta) = 0.5 * mval(nile_fresh_flux,imon,iday)
         chym_dis(irosetta,jrosetta) = 0.5 * mval(nile_fresh_flux,imon,iday)
-        conta = conta + 2
 #endif
 
 #ifdef BLACKSEA
         chym_dis(idardanelli,jdardanelli) = mval(bs_fresh_flux,imon,iday)
-        conta = conta + 1
 #endif
 
-        print*,"Number of discharge points accounted for : ",conta
-
-      else
-
-#ifdef CPL
-        do j = 2 , chym_nlat-1
-          do i = 2 , chym_nlon-1
-            idir = fmap(i,j)
-            if ( idir >= 1 .and. idir <= 8 ) then
-              ilnd = luse(i+ir(idir),j+jr(idir))
-              if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-                chym_dis(i,j) = 1.0
-                conta = conta + 1
-              end if
-            end if
-          end do
-        end do
-#ifdef AZOV
-        do j = 2 , chym_nlat-1
-          do i = 2 , chym_nlon-1
-            if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
-              if ( chym_dis(i,j) > 0.0 ) then
-                chym_dis(i,j) = -1.0
-                conta = conta - 1
-              end if
-            end if
-          end do
-        end do
-        chym_dis(ikerch,jkerch) = 1.0
-        conta = conta + 1
-#endif
-
-#ifdef NILE
-        chym_dis(idamietta,jdamietta) = 1.0
-        chym_dis(irosetta,jrosetta) = 1.0
-        conta = conta + 2
-#endif
-
-#ifdef BLACKSEA
-        chym_dis(idardanelli,jdardanelli) = 1.0
-        conta = conta + 1
-#endif
-
-#endif
-        print*,"Number of discharge points at beginning : ",conta
       end if
       end subroutine chym_init
 !

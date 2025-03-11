@@ -36,7 +36,7 @@ module mod_chym_model
       integer :: i, j, ii, jj, imin, ilnd, idir, step
       real :: dm, area, deltat, rainload, tmp
 
-      chym_dis(:,:) = -1.0
+      chym_dis(:,:) = 0.0
 
       step = 600        ! Number of step per days
       deltat = 86400.0/real(step)
@@ -101,7 +101,7 @@ module mod_chym_model
           if ( chym_lat(i,j) > 45.00 .and. chym_lon(i,j) > 34.0 ) then
             if ( chym_dis(i,j) > 0.0 ) then
               tmp = tmp + chym_dis(i,j)
-              chym_dis(i,j) = -1.0
+              chym_dis(i,j) = 0.0
             end if
           end if
         end do

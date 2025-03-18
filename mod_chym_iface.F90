@@ -34,7 +34,11 @@ module mod_chym_iface
 !     Read configuration parameters
 !-----------------------------------------------------------------------
 !
+#ifdef CPL
+      namelistfile = 'chym.namelist'
+#else
       call getarg(1, namelistfile)
+#endif
       call read_config(trim(namelistfile))
 !
 !-----------------------------------------------------------------------

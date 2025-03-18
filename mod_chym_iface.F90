@@ -157,7 +157,7 @@ module mod_chym_iface
         call chymmodel(chym_runoff, chym_surf, chym_dis, imon, iday)
 
         if (iswrit /= 0) then
-          if (mod(istep,iswrit)) then
+          if (mod(istep,iswrit) == 0) then
             call chym_rst(istep)
             call chym_out(istep)
             write(output_unit,fmt='(A,I8)') &

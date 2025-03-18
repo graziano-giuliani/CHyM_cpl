@@ -48,12 +48,13 @@ module mod_chym_param
 !     CHYM model config parameters
 !-----------------------------------------------------------------------
 !
-  real :: ufakru,thrriv
+  real :: thrriv
   logical :: restarted = .false.
-  integer :: iout, isread, iswrit
-  integer :: jahr1, jahr2, jahr3, nstep, pstep
-  character(len=80) :: dnres, dnini, dnout, tdate
-  character(len=150) :: chym_statikin
+  integer :: isread, iswrit
+  integer :: jahr1, jahr2, jahr3, jahr4, nstep, pstep
+  integer(8) :: sdate , edate
+  character(len=32) :: calendar
+  character(len=256) :: dnres, dnini, dnout, dnstt
 !
 !-----------------------------------------------------------------------
 !     CHYM model parameters

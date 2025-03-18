@@ -8,7 +8,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_chym_iface
-      use mod_chym_param, only : pstep, nstep
+      use mod_chym_param, only : nstep, pstep
 !
       implicit none
 

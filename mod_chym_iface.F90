@@ -1,42 +1,41 @@
-      module mod_chym_iface
+module mod_chym_iface
 !
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
 !
-      use mpi
-      use mod_chym_param
-      use mod_chym_io
-      use mod_chym_model
+  use, intrinsic :: iso_fortran_env
+  use mpi
+  use mod_chym_param
+  use mod_chym_io
+  use mod_chym_model
 !
-      implicit none
-      private
+  implicit none
+  private
 !
 !-----------------------------------------------------------------------
 !     Public subroutines
 !-----------------------------------------------------------------------
 !
-      public :: chym_init
-      public :: chym_run
-      public :: chym_finalize
+  public :: chym_init
+  public :: chym_run
+  public :: chym_finalize
 !
-      contains
+  contains
 !
-      subroutine chym_init(imon, iday)
+    subroutine chym_init(imon, iday)
       implicit none
       integer, intent(in) :: imon, iday
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations
-!-----------------------------------------------------------------------
-!
+
       integer :: i,j,idir,ilnd
+      character(len=256) :: namelistfile
 !
 !-----------------------------------------------------------------------
 !     Read configuration parameters
 !-----------------------------------------------------------------------
 !
-      call read_config('chymini.inp')
+      call getarg(1, namelistfile)
+      call read_config(trim(namelistfile))
 !
 !-----------------------------------------------------------------------
 !     Initialize variables
@@ -107,108 +106,70 @@
 #ifdef BLACKSEA
         chym_dis(idardanelli,jdardanelli) = mval(bs_fresh_flux,imon,iday)
 #endif
-
       end if
-      end subroutine chym_init
+    end subroutine chym_init
 !
-      subroutine chym_run(istart, iend, restarted, imon, iday)
+!-----------------------------------------------------------------------
+!       Run the model
+!-----------------------------------------------------------------------
+!
+    subroutine chym_run(istart, iend, restarted, imon, iday)
       implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations
-!-----------------------------------------------------------------------
-!
       integer, intent(in) :: istart
       integer, intent(in) :: iend
       logical, intent(in) :: restarted
       integer, intent(in) :: imon , iday
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations
-!-----------------------------------------------------------------------
-!
-      integer :: istep, icount
+
+      integer :: istep
 !
 !-----------------------------------------------------------------------
 !     Run the model
 !-----------------------------------------------------------------------
-!
-      if (isread /= 0 .and. iswrit /= 0) then
-        icount = mod(istart, iswrit)
-      else
-        icount = 0
-      end if
 !
       do istep = istart, iend
 !
 !-----------------------------------------------------------------------
-!     Get input
+!       Get input
 !-----------------------------------------------------------------------
 !
 #ifdef CPL
-      ! initial run
-      if (istep == 1 .and. .not. restarted) then
-        chym_runoff = 0.0
-        chym_surf = 0.0
-      end if
-#else
-      ! information comes from input file
-      if (istep == istart .and. istart /= 1) then
-        print*, "restarting the model ..."
-      end if
-#endif
-!
-!-----------------------------------------------------------------------
-!     Run the model
-!-----------------------------------------------------------------------
-#ifndef CPL
-!
-!     Fake runoff to test
-!
-      chym_runoff = 1.0e-7
-      chym_surf = 2.0e-7
-#endif
-      call chymmodel(chym_runoff, chym_surf, chym_dis, imon, iday)
-!
-!-----------------------------------------------------------------------
-!     Write to restart file
-!-----------------------------------------------------------------------
-!
-      if (iswrit /= 0) then
-        icount = icount+1
-        if (iswrit == icount) then
-          call chym_rst(istep)
-          write(*,fmt='(A,I8)') 'restart data are written', istep
-          icount = 0
+        ! initial run
+        if (istep == 1 .and. .not. restarted) then
+          chym_runoff = 0.0
+          chym_surf = 0.0
         end if
-      end if
-!-----------------------------------------------------------------------
-!     Write output to file
-!-----------------------------------------------------------------------
-!
-      call chym_out(istep)
-!
+#else
+        ! information comes from input file
+        if (istep == istart .and. istart /= 1) then
+          write(output_unit,*) "restarting the model ..."
+        end if
+#endif
+#ifndef CPL
+!       Fake runoff to test
+
+        chym_runoff = 1.0e-7
+        chym_surf = 2.0e-7
+#endif
+        call chymmodel(chym_runoff, chym_surf, chym_dis, imon, iday)
+
+        if (iswrit /= 0) then
+          if (mod(istep,iswrit)) then
+            call chym_rst(istep)
+            call chym_out(istep)
+            write(output_unit,fmt='(A,I8)') &
+                    'Out and restart data are written', istep
+          end if
+        end if
       end do
-!
-      end subroutine chym_run
+    end subroutine chym_run
 !
 !-----------------------------------------------------------------------
-!     Model finalize
+!   Model finalize
 !-----------------------------------------------------------------------
 !
-      subroutine chym_finalize()
+    subroutine chym_finalize()
       implicit none
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations
-!-----------------------------------------------------------------------
-!
-!-----------------------------------------------------------------------
-!     Close input files
-!-----------------------------------------------------------------------
-!
-      write(*,fmt='(A)') 'CHyM model finalized '
-!
-      end subroutine chym_finalize
-!
-      end module mod_chym_iface
+      write(output_unit, fmt='(A)') 'CHyM model finalized '
+    end subroutine chym_finalize
+
+end module mod_chym_iface

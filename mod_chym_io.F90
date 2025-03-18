@@ -9,6 +9,7 @@ module mod_chym_io
 !  Used module declarations
 !-----------------------------------------------------------------------
 !
+   use, intrinsic :: iso_fortran_env
    use mod_chym_param
 !
    implicit none
@@ -37,39 +38,49 @@ module mod_chym_io
 !     Local variable declarations
 !-----------------------------------------------------------------------
 !
-    real :: fdum
-    character(len=100) :: pname
+    integer :: iretval
+    integer :: lun
+
+    namelist /iniparam/ thrriv
+    namelist /inputparam/ isread, iswrit, nstep, &
+            dnres, dnini, dnout, dnstt
+    namelist /timeparam/ sdate, edate, calendar
 !
 !-----------------------------------------------------------------------
 !     Read parameters
 !-----------------------------------------------------------------------
 !
-    call read_rec(ifile, 'IOUT', fdum, pname)
-    iout = int(fdum+0.001)
-    call read_rec(ifile, 'ISREAD', fdum, pname)
-    isread = int(fdum+0.001)
-    call read_rec(ifile, 'ISWRIT', fdum, pname)
-    iswrit = int(fdum+0.001)
-    call read_rec(ifile, 'TIDATE', fdum, tdate)
-    read(tdate(1:4),'(i4)') jahr1
-    read(tdate(5:6),'(i2)') jahr2
-    read(tdate(7:8),'(i2)') jahr3
-    print*,"year",jahr1,"month",jahr2,"day",jahr3
-    call read_rec(ifile, 'NSTEP', fdum, pname)
-    nstep = int(fdum+0.001)
-    fdum = 0.0
-    call read_rec(ifile, 'UFAKRU', fdum, pname)
-    ufakru = fdum
-    call read_rec(ifile, 'UTHR', fdum, pname)
-    thrriv = fdum
-
-    call read_rec(ifile, 'TDNRES', fdum, dnres)
-    call read_rec(ifile, 'TDNINI', fdum, dnini)
-    call read_rec(ifile, 'TDNOUT', fdum, dnout)
-    call read_rec(ifile, 'TDNSTK', fdum, chym_statikin)
-!
+    open(newunit=lun, file=ifile, status='old', &
+         action='read', iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(error_unit,*) 'Error opening namelist file'//trim(ifile)
+      stop
+    end if
+    read(lun, nml=iniparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(error_unit,*) 'Error reading iniparam namelist'
+      stop
+    end if
+    rewind(lun)
+    read(lun, nml=inputparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(error_unit,*) 'Error reading inputparam namelist'
+      stop
+    end if
+    rewind(lun)
+    read(lun, nml=timeparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(error_unit,*) 'Error reading timeparam namelist'
+      stop
+    end if
+    jahr1 = sdate/1000000
+    jahr2 = (sdate-jahr1*1000000)/10000
+    jahr3 = (sdate-(jahr1*1000000+jahr2*10000))/100
+    jahr4 = sdate-jahr1*1000000+jahr2*10000+jahr3*100
+    write(output_unit, *) "Year ",jahr1,",month ",jahr2,",day ",jahr3
+    close(lun)
   end subroutine read_config
-!
+
   subroutine read_init()
 
     use netcdf
@@ -85,7 +96,7 @@ module mod_chym_io
     integer , dimension(3) :: ivarid
     integer :: contat
 
-    call nio_check(nf90_open(trim(chym_statikin), nf90_nowrite, ncid))
+    call nio_check(nf90_open(trim(dnstt), nf90_nowrite, ncid))
 
     call nio_check(nf90_inq_dimid(ncid,'lon',dimid))
     call nio_check(nf90_inquire_dimension(ncid,dimid,len=chym_nlon))
@@ -151,7 +162,7 @@ module mod_chym_io
 !
     pstep = 0
     if (isread /= 0) then
-      print*, "read chym restart data"
+      write(output_unit, *) "read chym restart data"
       call chym_ini()
     end if
 
@@ -176,7 +187,7 @@ module mod_chym_io
           jdamietta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          print *, 'Damietta is at ',ii,jj
+          write(output_unit, *) 'Damietta is at ',ii,jj
         end if
         if ( is_inbox(lat_rosetta,lon_rosetta, &
                corner_lat(:,i,j),corner_lon(:,i,j)) ) then
@@ -185,7 +196,7 @@ module mod_chym_io
           jrosetta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          print *, 'Rosetta is at ',ii,jj
+          write(output_unit, *) 'Rosetta is at ',ii,jj
         end if
 #endif
 #ifdef BLACKSEA
@@ -196,7 +207,7 @@ module mod_chym_io
           jdardanelli = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          print *, 'Dardanelli is at ',ii,jj
+          write(output_unit, *) 'Dardanelli is at ',ii,jj
         end if
 #endif
 #ifdef AZOV
@@ -207,7 +218,7 @@ module mod_chym_io
           jkerch = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          print *, 'Kerch is at ',ii,jj
+          write(output_unit, *) 'Kerch is at ',ii,jj
         end if
 #endif
       end do
@@ -235,8 +246,8 @@ module mod_chym_io
     call nio_check(nf90_put_var(ncid,ivarid(2), chym_lat))
     call nio_check(nf90_put_var(ncid,ivarid(3), chym_lsm))
     call nio_check(nf90_close(ncid))
-    print*,"Diagnostic mouth position file created"
-    print*,"Total number of river mouths found : ",contat
+    write(output_unit, *) "Diagnostic mouth position file created"
+    write(output_unit, *) "Total number of river mouths found : ",contat
   end subroutine read_init
 !
   subroutine find_nearest_land(i,j,ii,jj)
@@ -248,7 +259,7 @@ module mod_chym_io
       jj = j
     else
       if ( all(luse(i-1:i+1,j-1:j+1) == ocean) ) then
-        print *, 'No land point found! Will modify landmask!'
+        write(error_unit, *) 'No land point found! Will modify landmask!'
         ii = i
         jj = j
         return
@@ -263,63 +274,6 @@ module mod_chym_io
     end if
   end subroutine find_nearest_land
 
-  subroutine read_rec(ifile, key, value, pname)
-    implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations
-!-----------------------------------------------------------------------
-!
-    character(len=*), intent(in) :: ifile, key
-    character(len=*), intent(inout) :: pname
-    real, intent(inout) :: value
-!
-!-----------------------------------------------------------------------
-!     Local variable declarations
-!-----------------------------------------------------------------------
-!
-    integer :: ios
-!
-!-----------------------------------------------------------------------
-!     Open configuration file
-!-----------------------------------------------------------------------
-!
-    open(lu, file=trim(ifile), access='sequential', form='formatted', &
-         status='old', iostat=ios)
-    if (ios /= 0) then
-       write(*,*) '[error] -- file '//trim(ifile)//' not found!'
-       stop
-    endif
-!
-!-----------------------------------------------------------------------
-!     Read and find the parameter
-!-----------------------------------------------------------------------
-!
-    ios = 0
-    do while (ios == 0)
-      read(lu, fmt='(A80)', iostat=ios) pname
-      if (index(pname, key) /= 0) then
-        if (key(1:1) == 't' .or. key(1:1) == 'T') then
-          read(lu, '(A80)') pname
-          write(*,*) 'Parameter: '//trim(key)//' = ', trim(pname)
-        else
-          read(lu, *) value
-          write(*,*) 'Parameter: '//trim(key)//' = ', value
-        end if
-        exit
-      end if
-    end do
-!
-!-----------------------------------------------------------------------
-!     Close configuration file
-!-----------------------------------------------------------------------
-!
-    close(lu, status='keep', iostat=ios)
-    if (ios /= 0) then
-      write(*,*) '[error] -- '//trim(ifile)//'is not closed!'
-    endif
-  end subroutine read_rec
-!
   subroutine chym_out_init()
 !
 !-----------------------------------------------------------------------
@@ -712,7 +666,7 @@ module mod_chym_io
     integer, intent(in) :: status
 
     if (status /= nf90_noerr) then
-      print*, trim(nf90_strerror(status))
+      write(error_unit, *) trim(nf90_strerror(status))
       stop 2
     end if
 !
@@ -737,7 +691,7 @@ module mod_chym_io
         if ( idir >= 1 .and. idir <= 8 .and. &
              iland /= ocean .and. iland > 0 ) then
           if (iland.gt.lntypes.or.iland.le.0) then
-            print*,"Error in line: 845   in file: mod_chym_io"
+            write(error_unit, *) "Error in line: 845   in file: mod_chym_io"
             call exit(0)
           end if
           ! This is in meters

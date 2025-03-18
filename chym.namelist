@@ -1,0 +1,23 @@
+! Namelist for CHyM coupled model
+
+&iniparam
+ thrriv = 5400.0, ! Drained area threshold by a mouth point above wich
+                  ! the river is considered in the coupled system
+/
+
+&inputparam
+ isread = 0,   ! 0 = initial run (no restart)
+               ! 1 = read model restart file
+ iswrit = 1,   ! 0 = No output, 1 write output file
+ nstep = 1,    ! Number of time steps (days) the model should run
+ dnres = 'chym_rst.nc',
+ dnini = 'chym_ini_fixed.nc',
+ dnout = 'chym_dis.nc',
+ dnstt = 'chym_stk.nc',
+/
+
+&timeparam
+ sdate = 1979080100, ! Start date in YYYYMMDDHH
+ edate = 1987123100, ! Start date in YYYYMMDDHH
+ calendar = 'gregorian',
+/

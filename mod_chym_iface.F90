@@ -18,22 +18,25 @@ module mod_chym_iface
 !-----------------------------------------------------------------------
 !
   public :: chym_init
+  public :: chym_start
   public :: chym_run
   public :: chym_finalize
 !
   contains
 !
-    subroutine chym_init(imon, iday)
+    subroutine chym_init
       implicit none
-      integer, intent(in) :: imon, iday
 
-      integer :: i,j,idir,ilnd
       character(len=256) :: namelistfile
 !
 !-----------------------------------------------------------------------
 !     Read configuration parameters
 !-----------------------------------------------------------------------
 !
+      write(output_unit, *) 'This is CHYM - coupled runoff version'
+      write(output_unit, *) 'Version coupled in RegCM-ES-1.0'
+      write(output_unit, *) 'CHYM - Reading namelist files'
+
 #ifdef CPL
       namelistfile = 'chym.namelist'
 #else
@@ -46,12 +49,14 @@ module mod_chym_iface
 !     Read parameter, restart and masking files
 !-----------------------------------------------------------------------
 !
+      write(output_unit, *) 'CHYM - Initialize variables'
       call read_init()
 !
 !-----------------------------------------------------------------------
 !     Open output files
 !-----------------------------------------------------------------------
 !
+      write(output_unit, *) 'CHYM - Initialize output files'
       call chym_out_init()
 !
       if (iswrit /= 0) then
@@ -62,6 +67,8 @@ module mod_chym_iface
 !     Allocate variables
 !-----------------------------------------------------------------------
 !
+      write(output_unit, *) 'CHYM - Allocate data space'
+
       if (.not. allocated(chym_runoff)) &
            allocate(chym_runoff(chym_nlon,chym_nlat))
       if (.not. allocated(chym_dis))    &
@@ -72,6 +79,15 @@ module mod_chym_iface
            allocate(oro(chym_nlon,chym_nlat))
 
       chym_dis(:,:) = 0.0
+
+    end subroutine chym_init
+
+    subroutine chym_start(imon,iday)
+      implicit none
+      integer, intent(in) :: imon, iday
+      integer :: i,j,idir,ilnd
+
+      write(output_unit, *) 'CHYM - Initializing data space'
 
       if ( isread == 1 ) then
 
@@ -111,7 +127,8 @@ module mod_chym_iface
         chym_dis(idardanelli,jdardanelli) = mval(bs_fresh_flux,imon,iday)
 #endif
       end if
-    end subroutine chym_init
+      write(output_unit, *) 'CHYM - Ready to start !!!!'
+    end subroutine chym_start
 !
 !-----------------------------------------------------------------------
 !       Run the model
@@ -130,6 +147,7 @@ module mod_chym_iface
 !     Run the model
 !-----------------------------------------------------------------------
 !
+      write(output_unit, *) 'CHYM - Time integration step'
       do istep = istart, iend
 !
 !-----------------------------------------------------------------------
@@ -145,7 +163,7 @@ module mod_chym_iface
 #else
         ! information comes from input file
         if (istep == istart .and. istart /= 1) then
-          write(output_unit,*) "restarting the model ..."
+          write(output_unit,*) "CHYM - Restarting the model ..."
         end if
 #endif
 #ifndef CPL
@@ -161,10 +179,11 @@ module mod_chym_iface
             call chym_rst(istep)
             call chym_out(istep)
             write(output_unit,fmt='(A,I8)') &
-                    'Out and restart data are written', istep
+                    'CHYM - Out and restart data are written', istep
           end if
         end if
       end do
+      write(output_unit, *) 'CHYM - Time integration done!!!'
     end subroutine chym_run
 !
 !-----------------------------------------------------------------------
@@ -173,7 +192,7 @@ module mod_chym_iface
 !
     subroutine chym_finalize()
       implicit none
-      write(output_unit, fmt='(A)') 'CHyM model finalized '
+      write(output_unit, *) 'CHyM model finalized. Goodbye!'
     end subroutine chym_finalize
 
 end module mod_chym_iface

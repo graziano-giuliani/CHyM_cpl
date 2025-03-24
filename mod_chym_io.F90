@@ -53,31 +53,31 @@ module mod_chym_io
     open(newunit=lun, file=ifile, status='old', &
          action='read', iostat=iretval)
     if ( iretval /= 0 ) then
-      write(error_unit,*) 'Error opening namelist file'//trim(ifile)
+      write(error_unit,*) 'CHYM - Error opening namelist file'//trim(ifile)
       stop
     end if
     read(lun, nml=iniparam, iostat=iretval)
     if ( iretval /= 0 ) then
-      write(error_unit,*) 'Error reading iniparam namelist'
+      write(error_unit,*) 'CHYM - Error reading iniparam namelist'
       stop
     end if
     rewind(lun)
     read(lun, nml=inputparam, iostat=iretval)
     if ( iretval /= 0 ) then
-      write(error_unit,*) 'Error reading inputparam namelist'
+      write(error_unit,*) 'CHYM - Error reading inputparam namelist'
       stop
     end if
     rewind(lun)
     read(lun, nml=timeparam, iostat=iretval)
     if ( iretval /= 0 ) then
-      write(error_unit,*) 'Error reading timeparam namelist'
+      write(error_unit,*) 'CHYM - Error reading timeparam namelist'
       stop
     end if
     jahr1 = sdate/1000000
     jahr2 = (sdate-jahr1*1000000)/10000
     jahr3 = (sdate-(jahr1*1000000+jahr2*10000))/100
     jahr4 = sdate-jahr1*1000000+jahr2*10000+jahr3*100
-    write(output_unit, *) "Year ",jahr1,",month ",jahr2,",day ",jahr3
+    write(output_unit, *) "CHYM - Year ",jahr1,",month ",jahr2,",day ",jahr3
     close(lun)
   end subroutine read_config
 
@@ -162,7 +162,7 @@ module mod_chym_io
 !
     pstep = 0
     if (isread /= 0) then
-      write(output_unit, *) "read chym restart data"
+      write(output_unit, *) "CHYM - read chym restart data"
       call chym_ini()
     end if
 
@@ -187,7 +187,7 @@ module mod_chym_io
           jdamietta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'Damietta is at ',ii,jj
+          write(output_unit, *) 'CHYM - Damietta is at ',ii,jj
         end if
         if ( is_inbox(lat_rosetta,lon_rosetta, &
                corner_lat(:,i,j),corner_lon(:,i,j)) ) then
@@ -196,7 +196,7 @@ module mod_chym_io
           jrosetta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'Rosetta is at ',ii,jj
+          write(output_unit, *) 'CHYM - Rosetta is at ',ii,jj
         end if
 #endif
 #ifdef BLACKSEA
@@ -207,7 +207,7 @@ module mod_chym_io
           jdardanelli = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'Dardanelli is at ',ii,jj
+          write(output_unit, *) 'CHYM - Dardanelli is at ',ii,jj
         end if
 #endif
 #ifdef AZOV
@@ -218,7 +218,7 @@ module mod_chym_io
           jkerch = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'Kerch is at ',ii,jj
+          write(output_unit, *) 'CHYM - Kerch is at ',ii,jj
         end if
 #endif
       end do
@@ -246,8 +246,8 @@ module mod_chym_io
     call nio_check(nf90_put_var(ncid,ivarid(2), chym_lat))
     call nio_check(nf90_put_var(ncid,ivarid(3), chym_lsm))
     call nio_check(nf90_close(ncid))
-    write(output_unit, *) "Diagnostic mouth position file created"
-    write(output_unit, *) "Total number of river mouths found : ",contat
+    write(output_unit, *) "CHYM - Diagnostic mouth position file created"
+    write(output_unit, *) "CHYM - Total number of river mouths found : ",contat
   end subroutine read_init
 !
   subroutine find_nearest_land(i,j,ii,jj)
@@ -259,7 +259,7 @@ module mod_chym_io
       jj = j
     else
       if ( all(luse(i-1:i+1,j-1:j+1) == ocean) ) then
-        write(error_unit, *) 'No land point found! Will modify landmask!'
+        write(error_unit, *) 'CHYM - No land point found! Will modify landmask!'
         ii = i
         jj = j
         return
@@ -691,7 +691,7 @@ module mod_chym_io
         if ( idir >= 1 .and. idir <= 8 .and. &
              iland /= ocean .and. iland > 0 ) then
           if (iland.gt.lntypes.or.iland.le.0) then
-            write(error_unit, *) "Error in line: 845   in file: mod_chym_io"
+            write(error_unit, *) "CHYM - Error in line: 694, file : mod_chym_io"
             call exit(0)
           end if
           ! This is in meters

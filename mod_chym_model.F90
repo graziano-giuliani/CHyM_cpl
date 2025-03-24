@@ -52,9 +52,7 @@ module mod_chym_model
               ii = i+ir(idir)
               jj = j+jr(idir)
               dm = port(i,j)*deltat
-!             write(error_unit,'(12x,2i4,2f9.4)') i,j,dm,port(i,j)
               wkm1(i,j) = wkm1(i,j) - dm
-!             write(error_unit,'(12x,2i4,2f9.4)') i,j,wkm1(i,j),port(i,j)
               wkm1(ii,jj) = wkm1(ii,jj) + dm
             end if
           end do
@@ -71,7 +69,7 @@ module mod_chym_model
                rainload = area*(chym_runoff(i,j)+chym_surf(i,j))*deltat
                if (rainload > 200000.0) then
                  write(error_unit,fmt='(A,F8.2)') &
-                         "*WARNING VERY BIG RAINLOAD*:", rainload
+                         "CHYM - *WARNING VERY BIG RAINLOAD*:", rainload
                endif
                h2o(i,j) = h2o(i,j) + wkm1(i,j) + rainload
                h2o(i,j) = max(h2o(i,j),0.0)
@@ -109,7 +107,7 @@ module mod_chym_model
       end do
       chym_dis(ikerch,jkerch) = tmp
       write(output_unit,fmt='(1x,A,F16.2)') &
-              "Azov sea added up discharge value:   ",tmp
+              "CHYM - Azov sea added up discharge value:   ",tmp
 #endif
 
 #ifdef NILE
@@ -117,33 +115,33 @@ module mod_chym_model
       chym_dis(idamietta,jdamietta) = tmp
       chym_dis(irosetta,jrosetta) = tmp
       write(output_unit,fmt='(1x,A,F16.2)') &
-              "Prescribed Nile discharge :   ",tmp*2
+              "CHYM - Prescribed Nile discharge :   ",tmp*2
 #endif
 
 #ifdef BLACKSEA
       tmp = mval(bs_fresh_flux,imon,iday)
       chym_dis(idardanelli,jdardanelli) = tmp
       write(output_unit,fmt='(1x,A,F16.2)') &
-              "Prescribed Dardanelli BS output :   ",tmp
+              "CHYM - Prescribed Dardanelli BS output :   ",tmp
 #endif
 
-      write(output_unit,fmt='(1x,A,F16.2)')"Discharge max value: ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Discharge max value: ", &
                              maxval(port)
-      write(output_unit,fmt='(1x,A,F16.2)')"Bwet max value     : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Bwet max value     : ", &
                              maxval(bwet)
-      write(output_unit,fmt='(1x,A,F16.2)')"Alfa max value     : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Alfa max value     : ", &
                              maxval(alfa)
-      write(output_unit,fmt='(1x,A,F16.2)')"H2o max value      : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - H2o max value      : ", &
                              maxval(h2o)
-      write(output_unit,fmt='(1x,A,F16.2)')"Wkm1 max value     : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Wkm1 max value     : ", &
                              maxval(wkm1)
-      write(output_unit,fmt='(1x,A,F16.2)')"Dx max value       : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Dx max value       : ", &
                              maxval(chym_dx)
-      write(output_unit,fmt='(1x,A,F16.2)')"Area max value     : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Area max value     : ", &
                              maxval(chym_area)
-      write(output_unit,fmt='(1x,A,F16.2)')"Runoff max value   : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
                              maxval(chym_runoff)
-      write(output_unit,fmt='(1x,A,F16.2)')"Surf max value     : ", &
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Surf max value     : ", &
                              maxval(chym_surf)
     end subroutine chymmodel
 

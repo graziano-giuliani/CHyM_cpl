@@ -96,12 +96,12 @@ module mod_chym_io
     integer , dimension(3) :: ivarid
     integer :: contat
 
-    call nio_check(nf90_open(trim(dnstt), nf90_nowrite, ncid))
+    call nio_check(nf90_open(trim(dnstt), nf90_nowrite, ncid),__LINE__)
 
-    call nio_check(nf90_inq_dimid(ncid,'lon',dimid))
-    call nio_check(nf90_inquire_dimension(ncid,dimid,len=chym_nlon))
-    call nio_check(nf90_inq_dimid(ncid,'lat',dimid))
-    call nio_check(nf90_inquire_dimension(ncid,dimid,len=chym_nlat))
+    call nio_check(nf90_inq_dimid(ncid,'lon',dimid),__LINE__)
+    call nio_check(nf90_inquire_dimension(ncid,dimid,len=chym_nlon),__LINE__)
+    call nio_check(nf90_inq_dimid(ncid,'lat',dimid),__LINE__)
+    call nio_check(nf90_inquire_dimension(ncid,dimid,len=chym_nlat),__LINE__)
 
     nbc = chym_nlat
     nlc = chym_nlon
@@ -134,27 +134,27 @@ module mod_chym_io
     h2o = 0
     chym_lsm(:,:) = 0.0
 
-    call nio_check(nf90_inq_varid(ncid, 'manning', varid))
-    call nio_check(nf90_get_var(ncid, varid, manning))
-    call nio_check(nf90_inq_varid(ncid, 'lon', varid))
-    call nio_check(nf90_get_var(ncid, varid, chym_lon))
-    call nio_check(nf90_inq_varid(ncid, 'corner_lon', varid))
-    call nio_check(nf90_get_var(ncid, varid, corner_lon))
-    call nio_check(nf90_inq_varid(ncid, 'lat', varid))
-    call nio_check(nf90_get_var(ncid, varid, chym_lat))
-    call nio_check(nf90_inq_varid(ncid, 'corner_lat', varid))
-    call nio_check(nf90_get_var(ncid, varid, corner_lat))
-    call nio_check(nf90_inq_varid(ncid, 'fdm', varid))
-    call nio_check(nf90_get_var(ncid, varid, fmap))
-    call nio_check(nf90_inq_varid(ncid, 'acc', varid))
-    call nio_check(nf90_get_var(ncid, varid, accl))
-    call nio_check(nf90_inq_varid(ncid, 'lus', varid))
-    call nio_check(nf90_get_var(ncid, varid, luse))
-    call nio_check(nf90_inq_varid(ncid, 'aer', varid))
-    call nio_check(nf90_get_var(ncid, varid, chym_area))
-    call nio_check(nf90_inq_varid(ncid, 'dra', varid))
-    call nio_check(nf90_get_var(ncid, varid, chym_drai))
-    call nio_check(nf90_close(ncid))
+    call nio_check(nf90_inq_varid(ncid, 'manning', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, manning),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'lon', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, chym_lon),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'corner_lon', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, corner_lon),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'lat', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, chym_lat),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'corner_lat', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, corner_lat),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'fdm', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, fmap),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'acc', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, accl),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'lus', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, luse),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'aer', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, chym_area),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'dra', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, chym_drai),__LINE__)
+    call nio_check(nf90_close(ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Open, read and close restart file
@@ -225,27 +225,39 @@ module mod_chym_io
     end do
     call runoffspeed
 !
-    call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid))
-    call nio_check(nf90_def_dim(ncid,'lon',nlc,idimid(1)))
-    call nio_check(nf90_def_dim(ncid,'lat',nbc,idimid(2)))
-    call nio_check(nf90_def_var(ncid,'lon',nf90_real,idimid, ivarid(1)))
-    call nio_check(nf90_put_att(ncid,ivarid(1),'standard_name','longitude'))
-    call nio_check(nf90_put_att(ncid,ivarid(1),'long_name','Longitude'))
-    call nio_check(nf90_put_att(ncid,ivarid(1),'units','degrees_east'))
-    call nio_check(nf90_def_var(ncid,'lat',nf90_real,idimid,ivarid(2)))
-    call nio_check(nf90_put_att(ncid,ivarid(2),'standard_name','latitude'))
-    call nio_check(nf90_put_att(ncid,ivarid(2),'long_name','Latitude'))
-    call nio_check(nf90_put_att(ncid,ivarid(2),'units','degrees_north'))
-    call nio_check(nf90_def_var(ncid,'lsm',nf90_real,idimid,ivarid(3)))
-    call nio_check(nf90_put_att(ncid,ivarid(3),'standard_name','binary_mask'))
-    call nio_check(nf90_put_att(ncid,ivarid(3),'long_name','River Mouths'))
-    call nio_check(nf90_put_att(ncid,ivarid(3),'units','1'))
-    call nio_check(nf90_put_att(ncid,ivarid(3),'coordinates','lat lon'))
-    call nio_check(nf90_enddef(ncid))
-    call nio_check(nf90_put_var(ncid,ivarid(1), chym_lon))
-    call nio_check(nf90_put_var(ncid,ivarid(2), chym_lat))
-    call nio_check(nf90_put_var(ncid,ivarid(3), chym_lsm))
-    call nio_check(nf90_close(ncid))
+    call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid),__LINE__)
+    call nio_check(nf90_def_dim(ncid,'lon',nlc,idimid(1)),__LINE__)
+    call nio_check(nf90_def_dim(ncid,'lat',nbc,idimid(2)),__LINE__)
+    call nio_check(nf90_def_var(ncid,'lon',nf90_real,idimid,&
+                          ivarid(1)),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(1), &
+                          'standard_name','longitude'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(1), &
+                          'long_name','Longitude'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(1), &
+                          'units','degrees_east'),__LINE__)
+    call nio_check(nf90_def_var(ncid,'lat', &
+                          nf90_real,idimid,ivarid(2)),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(2), &
+                          'standard_name','latitude'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(2), &
+                          'long_name','Latitude'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(2), &
+                          'units','degrees_north'),__LINE__)
+    call nio_check(nf90_def_var(ncid,'lsm', &
+                          nf90_real,idimid,ivarid(3)),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(3), &
+                          'standard_name','binary_mask'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(3), &
+                          'long_name','River Mouths'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(3),'units','1'),__LINE__)
+    call nio_check(nf90_put_att(ncid,ivarid(3), &
+                          'coordinates','lat lon'),__LINE__)
+    call nio_check(nf90_enddef(ncid),__LINE__)
+    call nio_check(nf90_put_var(ncid,ivarid(1), chym_lon),__LINE__)
+    call nio_check(nf90_put_var(ncid,ivarid(2), chym_lat),__LINE__)
+    call nio_check(nf90_put_var(ncid,ivarid(3), chym_lsm),__LINE__)
+    call nio_check(nf90_close(ncid),__LINE__)
     write(output_unit, *) "CHYM - Diagnostic mouth position file created"
     write(output_unit, *) "CHYM - Total number of river mouths found : ",contat
   end subroutine read_init
@@ -297,87 +309,88 @@ module mod_chym_io
     if (.not. allocated(chymout%dimid)) allocate(chymout%dimid(3))
     if (.not. allocated(chymout%varid)) allocate(chymout%varid(5))
 !
-    call nio_check(nf90_create(trim(dnout), nf90_clobber,chymout%ncid))
+    call nio_check(nf90_create(trim(dnout), nf90_clobber, &
+                               chymout%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define dimensions
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_dim(chymout%ncid, 'lon',                  &
-                                  nlc, chymout%dimid(1)))
+                                nlc, chymout%dimid(1)),__LINE__)
     call nio_check(nf90_def_dim(chymout%ncid, 'lat',                  &
-                                  nbc, chymout%dimid(2)))
+                                nbc, chymout%dimid(2)),__LINE__)
     call nio_check(nf90_def_dim(chymout%ncid, 'time',                 &
-                                  nf90_unlimited, chymout%dimid(3)))
+                                nf90_unlimited, chymout%dimid(3)),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define dimension variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_var(chymout%ncid, 'lon', nf90_real,       &
-                     chymout%dimid(1:2), chymout%varid(1)))
+                     chymout%dimid(1:2), chymout%varid(1)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(1),       &
-                     'long_name', 'Longitude'))
+                     'long_name', 'Longitude'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(1),       &
-                     'units', 'degrees_east'))
+                     'units', 'degrees_east'),__LINE__)
 !
     call nio_check(nf90_def_var(chymout%ncid, 'lat', nf90_real,       &
-                     chymout%dimid(1:2), chymout%varid(2)))
+                     chymout%dimid(1:2), chymout%varid(2)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(2),       &
-                     'long_name', 'Latitude'))
+                     'long_name', 'Latitude'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(2),       &
-                     'units', 'degrees_north'))
+                     'units', 'degrees_north'),__LINE__)
 !
     call nio_check(nf90_def_var(chymout%ncid, 'time', nf90_int,       &
-                     chymout%dimid(3), chymout%varid(3)))
+                     chymout%dimid(3), chymout%varid(3)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(3),       &
-                     'long_name', 'Time'))
+                     'long_name', 'Time'),__LINE__)
     write(str,fmt='("days since ",I4,"-",I2.2,"-",I2.2," 00:00:00")') &
            jahr1, jahr2, jahr3
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(3),       &
-                     'units', str))
+                     'units', str),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_var(chymout%ncid, 'dis', nf90_real,       &
-                     chymout%dimid, chymout%varid(4)))
+                     chymout%dimid, chymout%varid(4)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
-                     'long_name', 'River Discharge'))
+                     'long_name', 'River Discharge'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
-                     'missing_value', 1.0e20))
+                     'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
-                     'coordinates', 'lat lon'))
+                     'coordinates', 'lat lon'),__LINE__)
     call nio_check(nf90_def_var(chymout%ncid, 'ro', nf90_real,        &
-                     chymout%dimid, chymout%varid(5)))
+                     chymout%dimid, chymout%varid(5)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
-                     'long_name', 'Atmosphere Runoff'))
+                     'long_name', 'Atmosphere Runoff'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
-                     'missing_value', 1.0e20))
+                     'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
-                     'coordinates', 'lat lon'))
+                     'coordinates', 'lat lon'),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Exit define mode
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_enddef(chymout%ncid))
+    call nio_check(nf90_enddef(chymout%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Fill coordinate variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_put_var(chymout%ncid, &
-                           chymout%varid(1), chym_lon))
+                           chymout%varid(1), chym_lon),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, &
-                           chymout%varid(2), chym_lat))
+                           chymout%varid(2), chym_lat),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_sync(chymout%ncid))
+    call nio_check(nf90_sync(chymout%ncid),__LINE__)
 !
   end subroutine chym_out_init
 !
@@ -404,87 +417,88 @@ module mod_chym_io
     if (.not. allocated(chymrst%dimid)) allocate(chymrst%dimid(3))
     if (.not. allocated(chymrst%varid)) allocate(chymrst%varid(5))
 !
-    call nio_check(nf90_create(trim(dnres), nf90_clobber, chymrst%ncid))
+    call nio_check(nf90_create(trim(dnres), nf90_clobber, &
+                               chymrst%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define dimensions
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_dim(chymrst%ncid, 'lon',                  &
-                                  nlc, chymrst%dimid(1)))
+                                nlc, chymrst%dimid(1)),__LINE__)
     call nio_check(nf90_def_dim(chymrst%ncid, 'lat',                  &
-                                  nbc, chymrst%dimid(2)))
+                                nbc, chymrst%dimid(2)),__LINE__)
     call nio_check(nf90_def_dim(chymrst%ncid, 'time',                 &
-                                  nf90_unlimited, chymrst%dimid(3)))
+                                nf90_unlimited, chymrst%dimid(3)),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define dimension variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_var(chymrst%ncid, 'lon', nf90_real,       &
-                     chymrst%dimid(1:2), chymrst%varid(1)))
+                     chymrst%dimid(1:2), chymrst%varid(1)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(1),       &
-                     'long_name', 'Longitude'))
+                     'long_name', 'Longitude'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(1),       &
-                     'units', 'degrees_east'))
+                     'units', 'degrees_east'),__LINE__)
 !
     call nio_check(nf90_def_var(chymrst%ncid, 'lat', nf90_real,       &
-                     chymrst%dimid(1:2), chymrst%varid(2)))
+                     chymrst%dimid(1:2), chymrst%varid(2)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(2),       &
-                     'long_name', 'Latitude'))
+                     'long_name', 'Latitude'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(2),       &
-                     'units', 'degrees_north'))
+                     'units', 'degrees_north'),__LINE__)
 !
     call nio_check(nf90_def_var(chymrst%ncid, 'time', nf90_int,       &
-                     chymrst%dimid(3), chymrst%varid(3)))
+                     chymrst%dimid(3), chymrst%varid(3)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(3),       &
-                     'long_name', 'Time'))
+                     'long_name', 'Time'),__LINE__)
     write(str,fmt='("days since ",I4,"-",I2.2,"-",I2.2," 00:00:00")') &
            jahr1, jahr2, jahr3
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(3),       &
-                     'units', str))
+                     'units', str),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Define variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_def_var(chymrst%ncid, 'dis', nf90_real,       &
-                     chymrst%dimid, chymrst%varid(4)))
+                     chymrst%dimid, chymrst%varid(4)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
-                     'long_name', 'River Discharge'))
+                     'long_name', 'River Discharge'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
-                     'missing_value', 1.0e20))
+                     'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
-                     'coordinates', 'lat lon'))
+                     'coordinates', 'lat lon'),__LINE__)
     call nio_check(nf90_def_var(chymrst%ncid, 'h2o', nf90_real,       &
-                     chymrst%dimid, chymrst%varid(5)))
+                     chymrst%dimid, chymrst%varid(5)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
-                     'long_name', 'Total water'))
+                     'long_name', 'Total water'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
-                     'missing_value', 1.0e20))
+                     'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
-                     'coordinates', 'lat lon'))
+                     'coordinates', 'lat lon'),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Exit define mode
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_enddef(chymrst%ncid))
+    call nio_check(nf90_enddef(chymrst%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Fill coordinate variables
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_put_var(chymrst%ncid, &
-                             chymrst%varid(1), chym_lon))
+                             chymrst%varid(1), chym_lon),__LINE__)
     call nio_check(nf90_put_var(chymrst%ncid, &
-                             chymrst%varid(2), chym_lat))
+                             chymrst%varid(2), chym_lat),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_sync(chymrst%ncid))
+    call nio_check(nf90_sync(chymrst%ncid),__LINE__)
 !
   end subroutine chym_rst_init
 !
@@ -515,31 +529,31 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_inquire_dimension(chymout%ncid,               &
-                     chymout%dimid(3), len=len))
+                     chymout%dimid(3), len=len),__LINE__)
 !
     start = (/ len+1, 1, 1, 1 /)
     count = (/ 1, 1, 1, 1 /)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(3),       &
-                    (/ istep-1 /), start, count))
+                    (/ istep-1 /), start, count),__LINE__)
 !
     start = (/ 1, 1, len+1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(4),       &
-                     port, start, count))
+                     port, start, count),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(5),       &
-                     oro, start, count))
+                     oro, start, count),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_sync(chymout%ncid))
+    call nio_check(nf90_sync(chymout%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Close file
 !-----------------------------------------------------------------------
 !
-    if (istep == nstep) call nio_check(nf90_close(chymout%ncid))
+    if (istep == nstep) call nio_check(nf90_close(chymout%ncid),__LINE__)
 !
   end subroutine chym_out
 !
@@ -570,33 +584,33 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 !
     call nio_check(nf90_inquire_dimension(chymrst%ncid,               &
-                     chymrst%dimid(3), len=len))
+                     chymrst%dimid(3), len=len),__LINE__)
     start = (/ len+1, 1, 1, 1 /)
     count = (/ 1, 1, 1, 1 /)
     call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(3),       &
-                    (/ istep-1 /), start, count))
+                    (/ istep-1 /), start, count),__LINE__)
 !
     start = (/ 1, 1, len+1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(4),       &
-                       port, start, count))
+                       port, start, count),__LINE__)
 !
     start = (/ 1, 1, len+1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(5),       &
-                       h2o, start, count))
+                       h2o, start, count),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_sync(chymrst%ncid))
+    call nio_check(nf90_sync(chymrst%ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Close file
 !-----------------------------------------------------------------------
 !
-    if (istep == nstep) call nio_check(nf90_close(chymrst%ncid))
+    if (istep == nstep) call nio_check(nf90_close(chymrst%ncid),__LINE__)
 !
   end subroutine chym_rst
 !
@@ -620,26 +634,26 @@ module mod_chym_io
 !     Open netCDF file
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_open(trim(dnini), nf90_nowrite, ncid))
+    call nio_check(nf90_open(trim(dnini), nf90_nowrite, ncid),__LINE__)
 !
 !-----------------------------------------------------------------------
 !     Read variables
 !-----------------------------------------------------------------------
 !
-    call nio_check(nf90_inq_varid(ncid, 'dis', varid))
+    call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
     start = (/ 1, 1, 1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_get_var(ncid, varid, port,                    &
-                       start=start, count=count))
+                       start=start, count=count),__LINE__)
 !
-    call nio_check(nf90_inq_varid(ncid, 'h2o', varid))
+    call nio_check(nf90_inq_varid(ncid, 'h2o', varid),__LINE__)
     start = (/ 1, 1, 1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_get_var(ncid, varid, h2o,                     &
-                       start=start, count=count))
+                       start=start, count=count),__LINE__)
 !
-    call nio_check(nf90_inq_varid(ncid, 'time', varid))
-    call nio_check(nf90_get_var(ncid, varid, pstep))
+    call nio_check(nf90_inq_varid(ncid, 'time', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, pstep),__LINE__)
     pstep = pstep+1
 !
 !-----------------------------------------------------------------------
@@ -649,7 +663,7 @@ module mod_chym_io
 
   end subroutine chym_ini
 !
-  subroutine nio_check(status)
+  subroutine nio_check(istatus,line)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations
@@ -663,10 +677,12 @@ module mod_chym_io
 !     Imported variable declarations
 !-----------------------------------------------------------------------
 !
-    integer, intent(in) :: status
+    integer, intent(in) :: istatus
+    integer, intent(in) :: line
 
-    if (status /= nf90_noerr) then
-      write(error_unit, *) trim(nf90_strerror(status))
+    if (istatus /= nf90_noerr) then
+      write(error_unit, *) 'CHYM - At line ',line
+      write(error_unit, *) trim(nf90_strerror(istatus))
       stop 2
     end if
 !

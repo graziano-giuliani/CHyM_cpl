@@ -1,14 +1,14 @@
 module mod_chym_param
   implicit none
-!
+
 !-----------------------------------------------------------------------
 !     CHYM model grid dimensions
-!
+
 !     nlc: number of longitudes
 !     nbc: number of latitudes
 !     fscal: resolution of the model
 !-----------------------------------------------------------------------
-!
+
   integer :: nlc
   integer :: nbc
   integer :: chym_nlon
@@ -21,33 +21,34 @@ module mod_chym_param
   integer ir(9),jr(9)
   data ir /-1, 0, 1, 1, 1, 0,-1,-1,0/
   data jr / 1, 1, 1, 0,-1,-1,-1, 0,0/
-!
+
 !-----------------------------------------------------------------------
 !     CHYM model I/O unit params
 !-----------------------------------------------------------------------
-!
+
   integer, parameter :: lu = 11
   integer, parameter :: lurun = 12
   integer, parameter :: lubas = 13
   integer, parameter :: lures = 14
   integer, parameter :: lupar = 15
-!
+
 !-----------------------------------------------------------------------
 !     CHYM model netCDF data type
 !-----------------------------------------------------------------------
-!
+
   type CHYM_IO
     integer :: ncid
     integer, allocatable :: dimid(:)
     integer, allocatable :: varid(:)
+    integer :: nrec
   end type CHYM_IO
-!
+
   type(CHYM_IO) :: chymout, chymrst
-!
+
 !-----------------------------------------------------------------------
 !     CHYM model config parameters
 !-----------------------------------------------------------------------
-!
+
   real :: thrriv
   logical :: restarted = .false.
   integer :: isread, iswrit
@@ -55,11 +56,11 @@ module mod_chym_param
   integer(8) :: sdate , edate
   character(len=32) :: calendar
   character(len=256) :: dnres, dnini, dnout, dnstt
-!
+
 !-----------------------------------------------------------------------
 !     CHYM model parameters
 !-----------------------------------------------------------------------
-!
+
   ! area of the grid cells
   real, allocatable :: area(:)
   ! area of the chym grid cells
@@ -103,7 +104,7 @@ module mod_chym_param
   integer, parameter :: nmemrf = 5
   integer, parameter :: nmemlf = 1
   integer, parameter :: mm = 4
-!
+
   real, allocatable :: chym_runoff(:,:)
   real, allocatable :: chym_surf(:,:)
   real, allocatable :: oro(:,:)

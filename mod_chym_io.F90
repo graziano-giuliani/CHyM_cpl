@@ -1,20 +1,20 @@
-!
+
 !-----------------------------------------------------------------------
 !     Module for CHyM model I/O subroutines
 !-----------------------------------------------------------------------
-!
+
 module mod_chym_io
-!
+
 !-----------------------------------------------------------------------
 !  Used module declarations
 !-----------------------------------------------------------------------
-!
+
    use, intrinsic :: iso_fortran_env
    use mod_chym_param
-!
+
    implicit none
    private
-!
+
    public :: read_config
    public :: read_init
    public :: chym_out_init
@@ -22,22 +22,30 @@ module mod_chym_io
    public :: chym_rst_init
    public :: chym_rst
    public :: chym_ini
-!
+   public :: chym_dispose
+
    contains
-!
+
+   subroutine chym_dispose
+     use netcdf
+     implicit none
+     call nio_check(nf90_close(chymout%ncid),__LINE__)
+     call nio_check(nf90_close(chymrst%ncid),__LINE__)
+   end subroutine chym_dispose
+
    subroutine read_config(ifile)
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Imported variable declarations
 !-----------------------------------------------------------------------
-!
+
     character(len=*) :: ifile
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer :: iretval
     integer :: lun
 
@@ -45,11 +53,11 @@ module mod_chym_io
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
-!
+
 !-----------------------------------------------------------------------
 !     Read parameters
 !-----------------------------------------------------------------------
-!
+
     open(newunit=lun, file=ifile, status='old', &
          action='read', iostat=iretval)
     if ( iretval /= 0 ) then
@@ -85,11 +93,11 @@ module mod_chym_io
 
     use netcdf
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer :: i,j,ii,jj,idir,ilnd
     integer :: ncid, varid, dimid
     integer , dimension(2) :: idimid
@@ -105,11 +113,11 @@ module mod_chym_io
 
     nbc = chym_nlat
     nlc = chym_nlon
-!
+
 !-----------------------------------------------------------------------
 !     Allocate variables
 !-----------------------------------------------------------------------
-!
+
     if (.not. allocated(chym_area)) allocate(chym_area(nlc,nbc))
     if (.not. allocated(chym_drai)) allocate(chym_drai(nlc,nbc))
     if (.not. allocated(chym_lsm)) allocate(chym_lsm(nlc,nbc))
@@ -155,11 +163,11 @@ module mod_chym_io
     call nio_check(nf90_inq_varid(ncid, 'dra', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, chym_drai),__LINE__)
     call nio_check(nf90_close(ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Open, read and close restart file
 !-----------------------------------------------------------------------
-!
+
     pstep = 0
     if (isread /= 0) then
       write(output_unit, *) "CHYM - read chym restart data"
@@ -224,7 +232,7 @@ module mod_chym_io
       end do
     end do
     call runoffspeed
-!
+
     call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid),__LINE__)
     call nio_check(nf90_def_dim(ncid,'lon',nlc,idimid(1)),__LINE__)
     call nio_check(nf90_def_dim(ncid,'lat',nbc,idimid(2)),__LINE__)
@@ -261,7 +269,7 @@ module mod_chym_io
     write(output_unit, *) "CHYM - Diagnostic mouth position file created"
     write(output_unit, *) "CHYM - Total number of river mouths found : ",contat
   end subroutine read_init
-!
+
   subroutine find_nearest_land(i,j,ii,jj)
     implicit none
     integer, intent(in) :: i, j
@@ -287,60 +295,60 @@ module mod_chym_io
   end subroutine find_nearest_land
 
   subroutine chym_out_init()
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
+
     character(len=100) :: str
-!
+
 !-----------------------------------------------------------------------
 !     Create netCDF file
 !-----------------------------------------------------------------------
-!
+
     if (.not. allocated(chymout%dimid)) allocate(chymout%dimid(3))
     if (.not. allocated(chymout%varid)) allocate(chymout%varid(5))
-!
+
     call nio_check(nf90_create(trim(dnout), nf90_clobber, &
                                chymout%ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Define dimensions
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_dim(chymout%ncid, 'lon',                  &
                                 nlc, chymout%dimid(1)),__LINE__)
     call nio_check(nf90_def_dim(chymout%ncid, 'lat',                  &
                                 nbc, chymout%dimid(2)),__LINE__)
     call nio_check(nf90_def_dim(chymout%ncid, 'time',                 &
                                 nf90_unlimited, chymout%dimid(3)),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Define dimension variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_var(chymout%ncid, 'lon', nf90_real,       &
                      chymout%dimid(1:2), chymout%varid(1)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(1),       &
                      'long_name', 'Longitude'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(1),       &
                      'units', 'degrees_east'),__LINE__)
-!
+
     call nio_check(nf90_def_var(chymout%ncid, 'lat', nf90_real,       &
                      chymout%dimid(1:2), chymout%varid(2)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(2),       &
                      'long_name', 'Latitude'),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(2),       &
                      'units', 'degrees_north'),__LINE__)
-!
+
     call nio_check(nf90_def_var(chymout%ncid, 'time', nf90_int,       &
                      chymout%dimid(3), chymout%varid(3)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(3),       &
@@ -349,11 +357,11 @@ module mod_chym_io
            jahr1, jahr2, jahr3
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(3),       &
                      'units', str),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Define variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_var(chymout%ncid, 'dis', nf90_real,       &
                      chymout%dimid, chymout%varid(4)),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(4),       &
@@ -370,85 +378,87 @@ module mod_chym_io
                      'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymout%ncid, chymout%varid(5),       &
                      'coordinates', 'lat lon'),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Exit define mode
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_enddef(chymout%ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Fill coordinate variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_put_var(chymout%ncid, &
                            chymout%varid(1), chym_lon),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, &
                            chymout%varid(2), chym_lat),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_sync(chymout%ncid),__LINE__)
-!
+    chymout%nrec = 0
+
   end subroutine chym_out_init
-!
+
   subroutine chym_rst_init()
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
+
     character(len=100) :: str
-!
+
 !-----------------------------------------------------------------------
 !     Create netCDF file
 !-----------------------------------------------------------------------
-!
+
     if (.not. allocated(chymrst%dimid)) allocate(chymrst%dimid(3))
     if (.not. allocated(chymrst%varid)) allocate(chymrst%varid(5))
-!
+
     call nio_check(nf90_create(trim(dnres), nf90_clobber, &
                                chymrst%ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Define dimensions
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_dim(chymrst%ncid, 'lon',                  &
                                 nlc, chymrst%dimid(1)),__LINE__)
     call nio_check(nf90_def_dim(chymrst%ncid, 'lat',                  &
                                 nbc, chymrst%dimid(2)),__LINE__)
     call nio_check(nf90_def_dim(chymrst%ncid, 'time',                 &
-                                nf90_unlimited, chymrst%dimid(3)),__LINE__)
-!
+                                nf90_unlimited, chymrst%dimid(3)),    &
+                                __LINE__)
+
 !-----------------------------------------------------------------------
 !     Define dimension variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_var(chymrst%ncid, 'lon', nf90_real,       &
                      chymrst%dimid(1:2), chymrst%varid(1)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(1),       &
                      'long_name', 'Longitude'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(1),       &
                      'units', 'degrees_east'),__LINE__)
-!
+
     call nio_check(nf90_def_var(chymrst%ncid, 'lat', nf90_real,       &
                      chymrst%dimid(1:2), chymrst%varid(2)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(2),       &
                      'long_name', 'Latitude'),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(2),       &
                      'units', 'degrees_north'),__LINE__)
-!
+
     call nio_check(nf90_def_var(chymrst%ncid, 'time', nf90_int,       &
                      chymrst%dimid(3), chymrst%varid(3)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(3),       &
@@ -457,11 +467,11 @@ module mod_chym_io
            jahr1, jahr2, jahr3
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(3),       &
                      'units', str),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Define variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_def_var(chymrst%ncid, 'dis', nf90_real,       &
                      chymrst%dimid, chymrst%varid(4)),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(4),       &
@@ -478,205 +488,190 @@ module mod_chym_io
                      'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
                      'coordinates', 'lat lon'),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Exit define mode
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_enddef(chymrst%ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Fill coordinate variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_put_var(chymrst%ncid, &
                              chymrst%varid(1), chym_lon),__LINE__)
     call nio_check(nf90_put_var(chymrst%ncid, &
                              chymrst%varid(2), chym_lat),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_sync(chymrst%ncid),__LINE__)
-!
+    chymrst%nrec = 0
+
   end subroutine chym_rst_init
-!
+
   subroutine chym_out(istep)
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Imported variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer, intent(in) :: istep
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
-    integer :: len, start(4), count(4)
-!
+
+    integer :: ilen, start(4), count(4)
+
 !-----------------------------------------------------------------------
 !     Write data to file
 !-----------------------------------------------------------------------
-!
-    call nio_check(nf90_inquire_dimension(chymout%ncid,               &
-                     chymout%dimid(3), len=len),__LINE__)
-!
-    start = (/ len+1, 1, 1, 1 /)
+
+    ilen = chymout%nrec + 1
+    start = (/ ilen, 1, 1, 1 /)
     count = (/ 1, 1, 1, 1 /)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(3),       &
                     (/ istep-1 /), start, count),__LINE__)
-!
-    start = (/ 1, 1, len+1, 1 /)
+
+    start = (/ 1, 1, ilen, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(4),       &
                      port, start, count),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(5),       &
                      oro, start, count),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_sync(chymout%ncid),__LINE__)
-!
-!-----------------------------------------------------------------------
-!     Close file
-!-----------------------------------------------------------------------
-!
-    if (istep == nstep) call nio_check(nf90_close(chymout%ncid),__LINE__)
-!
+    chymout%nrec = chymout%nrec + 1
+
   end subroutine chym_out
-!
+
   subroutine chym_rst(istep)
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Imported variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer, intent(in) :: istep
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
-    integer :: start(4), count(4), len
-!
+
+    integer :: start(4), count(4), ilen
+
 !-----------------------------------------------------------------------
 !     Write data to file
 !-----------------------------------------------------------------------
-!
-    call nio_check(nf90_inquire_dimension(chymrst%ncid,               &
-                     chymrst%dimid(3), len=len),__LINE__)
-    start = (/ len+1, 1, 1, 1 /)
+
+    ilen = chymrst%nrec + 1
+    start = (/ ilen, 1, 1, 1 /)
     count = (/ 1, 1, 1, 1 /)
-    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(3),       &
+    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(3),  &
                     (/ istep-1 /), start, count),__LINE__)
-!
-    start = (/ 1, 1, len+1, 1 /)
+
+    start = (/ 1, 1, ilen, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
-    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(4),       &
+    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(4),  &
                        port, start, count),__LINE__)
-!
-    start = (/ 1, 1, len+1, 1 /)
-    count = (/ nlc, nbc, 1, 1 /)
-    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(5),       &
+    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(5),  &
                        h2o, start, count),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Sync file
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_sync(chymrst%ncid),__LINE__)
-!
-!-----------------------------------------------------------------------
-!     Close file
-!-----------------------------------------------------------------------
-!
-    if (istep == nstep) call nio_check(nf90_close(chymrst%ncid),__LINE__)
-!
+    chymrst%nrec = chymrst%nrec + 1
+
   end subroutine chym_rst
-!
+
   subroutine chym_ini()
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Local variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer :: ncid, varid, start(4), count(4)
-!
+
 !-----------------------------------------------------------------------
 !     Open netCDF file
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_open(trim(dnini), nf90_nowrite, ncid),__LINE__)
-!
+
 !-----------------------------------------------------------------------
 !     Read variables
 !-----------------------------------------------------------------------
-!
+
     call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
     start = (/ 1, 1, 1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_get_var(ncid, varid, port,                    &
                        start=start, count=count),__LINE__)
-!
+
     call nio_check(nf90_inq_varid(ncid, 'h2o', varid),__LINE__)
     start = (/ 1, 1, 1, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_get_var(ncid, varid, h2o,                     &
                        start=start, count=count),__LINE__)
-!
+
     call nio_check(nf90_inq_varid(ncid, 'time', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, pstep),__LINE__)
     pstep = pstep+1
-!
+
 !-----------------------------------------------------------------------
 !     Close file
 !-----------------------------------------------------------------------
-!
+
 
   end subroutine chym_ini
-!
+
   subroutine nio_check(istatus,line)
-!
+
 !-----------------------------------------------------------------------
 !     Used module declarations
 !-----------------------------------------------------------------------
-!
+
     use netcdf
-!
+
     implicit none
-!
+
 !-----------------------------------------------------------------------
 !     Imported variable declarations
 !-----------------------------------------------------------------------
-!
+
     integer, intent(in) :: istatus
     integer, intent(in) :: line
 
@@ -685,9 +680,9 @@ module mod_chym_io
       write(error_unit, *) trim(nf90_strerror(istatus))
       stop 2
     end if
-!
+
   end subroutine nio_check
-!
+
   subroutine runoffspeed
     implicit none
     integer i,j,idir,iland
@@ -734,7 +729,7 @@ module mod_chym_io
       enddo
     enddo
   end subroutine runoffspeed
-!
+
   real function geodistance(latt1,lonn1,latt2,lonn2)
     implicit none
     real, parameter :: rad = 6371000.0

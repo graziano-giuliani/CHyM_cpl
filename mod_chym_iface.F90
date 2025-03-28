@@ -72,13 +72,8 @@ module mod_chym_iface
            allocate(chym_runoff(chym_nlon,chym_nlat))
       if (.not. allocated(chym_dis))    &
            allocate(chym_dis(chym_nlon,chym_nlat))
-      if (.not. allocated(chym_surf))   &
-           allocate(chym_surf(chym_nlon,chym_nlat))
-      if (.not. allocated(total_runoff)) &
-           allocate(total_runoff(chym_nlon,chym_nlat))
 
       chym_runoff(:,:) = 0.0
-      chym_surf(:,:) = 0.0
       chym_dis(:,:) = 0.0
 
     end subroutine chym_init
@@ -163,9 +158,8 @@ module mod_chym_iface
 !       Fake runoff to test
 
         chym_runoff = 1.0e-7
-        chym_surf = 2.0e-7
 #endif
-        call chymmodel(chym_runoff, chym_surf, chym_dis, imon, iday)
+        call chymmodel(chym_runoff, chym_dis, imon, iday)
 
         if (iswrit /= 0) then
           if (mod(istep,iswrit) == 0) then

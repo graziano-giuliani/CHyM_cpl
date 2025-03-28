@@ -106,8 +106,6 @@ module mod_chym_param
   integer, parameter :: mm = 4
 
   real, allocatable :: chym_runoff(:,:)
-  real, allocatable :: chym_surf(:,:)
-  real, allocatable :: total_runoff(:,:)
   real, allocatable :: chym_dis(:,:)
   integer, allocatable :: chym_mask(:,:)
 

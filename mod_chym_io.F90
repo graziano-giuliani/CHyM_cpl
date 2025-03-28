@@ -427,7 +427,7 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
     if (.not. allocated(chymrst%dimid)) allocate(chymrst%dimid(3))
-    if (.not. allocated(chymrst%varid)) allocate(chymrst%varid(5))
+    if (.not. allocated(chymrst%varid)) allocate(chymrst%varid(6))
 
     call nio_check(nf90_create(trim(dnres), nf90_clobber, &
                                chymrst%ncid),__LINE__)
@@ -491,6 +491,14 @@ module mod_chym_io
                      'missing_value', 1.0e20),__LINE__)
     call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(5),       &
                      'coordinates', 'lat lon'),__LINE__)
+    call nio_check(nf90_def_var(chymrst%ncid, 'rno', nf90_real,       &
+                     chymrst%dimid, chymrst%varid(6)),__LINE__)
+    call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(6),       &
+                     'long_name', 'Total runoff'),__LINE__)
+    call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(6),       &
+                     'missing_value', 1.0e20),__LINE__)
+    call nio_check(nf90_put_att(chymrst%ncid, chymrst%varid(6),       &
+                     'coordinates', 'lat lon'),__LINE__)
 
 !-----------------------------------------------------------------------
 !     Exit define mode
@@ -553,7 +561,7 @@ module mod_chym_io
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(4),       &
                      port, start, count),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(5),       &
-                     total_runoff, start, count),__LINE__)
+                     chym_runoff, start, count),__LINE__)
 
 !-----------------------------------------------------------------------
 !     Sync file
@@ -602,6 +610,8 @@ module mod_chym_io
                        port, start, count),__LINE__)
     call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(5),  &
                        h2o, start, count),__LINE__)
+    call nio_check(nf90_put_var(chymrst%ncid, chymrst%varid(6),  &
+                       chym_runoff, start, count),__LINE__)
 
 !-----------------------------------------------------------------------
 !     Sync file
@@ -626,7 +636,8 @@ module mod_chym_io
 !     Local variable declarations
 !-----------------------------------------------------------------------
 
-    integer :: ncid, varid, start(4), count(4)
+    integer :: ncid, ncstat, dimid, varid, nt, start(4), count(4)
+    real :: last_time(1)
 
 !-----------------------------------------------------------------------
 !     Open netCDF file
@@ -635,24 +646,39 @@ module mod_chym_io
     call nio_check(nf90_open(trim(dnini), nf90_nowrite, ncid),__LINE__)
 
 !-----------------------------------------------------------------------
+!   Select last timestep
+!-----------------------------------------------------------------------
+
+    call nio_check(nf90_inq_dimid(ncid,'time',dimid),__LINE__)
+    call nio_check(nf90_inquire_dimension(ncid,dimid,len=nt),__LINE__)
+
+!-----------------------------------------------------------------------
 !     Read variables
 !-----------------------------------------------------------------------
 
-    call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
-    start = (/ 1, 1, 1, 1 /)
+    start = (/ 1, 1, nt, 1 /)
     count = (/ nlc, nbc, 1, 1 /)
+
+    call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, port,                    &
                        start=start, count=count),__LINE__)
 
     call nio_check(nf90_inq_varid(ncid, 'h2o', varid),__LINE__)
-    start = (/ 1, 1, 1, 1 /)
-    count = (/ nlc, nbc, 1, 1 /)
     call nio_check(nf90_get_var(ncid, varid, h2o,                     &
                        start=start, count=count),__LINE__)
 
+    ncstat = nf90_inq_varid(ncid, 'rno', varid)
+    if ( ncstat == nf90_noerr ) then
+      call nio_check(nf90_get_var(ncid, varid, chym_runoff,             &
+                         start=start, count=count),__LINE__)
+    end if
+
+    start = (/ nt, 1, 1, 1 /)
+    count = (/ 1, 1, 1, 1 /)
     call nio_check(nf90_inq_varid(ncid, 'time', varid),__LINE__)
-    call nio_check(nf90_get_var(ncid, varid, pstep),__LINE__)
-    pstep = pstep+1
+    call nio_check(nf90_get_var(ncid, varid, last_time, &
+                         start=start(1:1), count=count(1:1)),__LINE__)
+    pstep = last_time(1)+1
 
 !-----------------------------------------------------------------------
 !     Close file

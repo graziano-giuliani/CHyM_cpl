@@ -123,6 +123,7 @@ module mod_chym_io
     if (.not. allocated(chym_lsm)) allocate(chym_lsm(nlc,nbc))
     if (.not. allocated(chym_dx)) allocate(chym_dx(nlc,nbc))
     if (.not. allocated(chym_lat)) allocate(chym_lat(nlc,nbc))
+    if (.not. allocated(chym_mask)) allocate(chym_mask(nlc,nbc))
     if (.not. allocated(chym_lon)) allocate(chym_lon(nlc,nbc))
     if (.not. allocated(corner_lat)) allocate(corner_lat(4,nlc,nbc))
     if (.not. allocated(corner_lon)) allocate(corner_lon(4,nlc,nbc))
@@ -152,6 +153,8 @@ module mod_chym_io
     call nio_check(nf90_get_var(ncid, varid, chym_lat),__LINE__)
     call nio_check(nf90_inq_varid(ncid, 'corner_lat', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, corner_lat),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'msk', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, chym_mask),__LINE__)
     call nio_check(nf90_inq_varid(ncid, 'fdm', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, fmap),__LINE__)
     call nio_check(nf90_inq_varid(ncid, 'acc', varid),__LINE__)
@@ -550,7 +553,7 @@ module mod_chym_io
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(4),       &
                      port, start, count),__LINE__)
     call nio_check(nf90_put_var(chymout%ncid, chymout%varid(5),       &
-                     oro, start, count),__LINE__)
+                     total_runoff, start, count),__LINE__)
 
 !-----------------------------------------------------------------------
 !     Sync file

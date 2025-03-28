@@ -74,9 +74,11 @@ module mod_chym_iface
            allocate(chym_dis(chym_nlon,chym_nlat))
       if (.not. allocated(chym_surf))   &
            allocate(chym_surf(chym_nlon,chym_nlat))
-      if (.not. allocated(oro)) &
-           allocate(oro(chym_nlon,chym_nlat))
+      if (.not. allocated(total_runoff)) &
+           allocate(total_runoff(chym_nlon,chym_nlat))
 
+      chym_runoff(:,:) = 0.0
+      chym_surf(:,:) = 0.0
       chym_dis(:,:) = 0.0
 
     end subroutine chym_init
@@ -153,19 +155,11 @@ module mod_chym_iface
 !       Get input
 !-----------------------------------------------------------------------
 
-#ifdef CPL
-        ! initial run
-        if (istep == 1 .and. .not. restarted) then
-          chym_runoff = 0.0
-          chym_surf = 0.0
-        end if
-#else
+#ifndef CPL
         ! information comes from input file
         if (istep == istart .and. istart /= 1) then
           write(output_unit,*) "CHYM - Restarting the model ..."
         end if
-#endif
-#ifndef CPL
 !       Fake runoff to test
 
         chym_runoff = 1.0e-7

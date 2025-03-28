@@ -41,7 +41,11 @@ module mod_chym_model
 
       step = 600        ! Number of step per days
       deltat = 86400.0/real(step)
-      oro = chym_runoff + chym_surf
+      where ( chym_mask == 0 )
+        total_runoff = chym_runoff + chym_surf
+      elsewhere
+        total_runoff = 0
+      end where
       do imin = 1, step
         wkm1(:,:) = 0.0
         do j = 2, chym_nlat-1
@@ -66,7 +70,7 @@ module mod_chym_model
                ! Area in the input file is in km^2, we put it in m^2
                ! m^2 * m/s * s = m^3
                area = chym_area(i,j)*1.0e+06
-               rainload = area*(chym_runoff(i,j)+chym_surf(i,j))*deltat
+               rainload = area*total_runoff(i,j)*deltat
                if (rainload > 200000.0) then
                  write(error_unit,fmt='(A,F8.2)') &
                          "CHYM - *WARNING VERY BIG RAINLOAD*:", rainload

@@ -107,8 +107,9 @@ module mod_chym_param
 
   real, allocatable :: chym_runoff(:,:)
   real, allocatable :: chym_surf(:,:)
-  real, allocatable :: oro(:,:)
+  real, allocatable :: total_runoff(:,:)
   real, allocatable :: chym_dis(:,:)
+  integer, allocatable :: chym_mask(:,:)
 
 #ifdef NILE
   real, parameter, dimension(12) :: nile_fresh_flux = &

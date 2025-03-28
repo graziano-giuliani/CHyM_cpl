@@ -173,8 +173,8 @@ module mod_chym_io
 
     pstep = 0
     if (isread /= 0) then
-      write(output_unit, *) "CHYM - read chym restart data"
       call chym_ini()
+      write(output_unit, *) "CHYM - Successfully read chym restart data"
     end if
 
     contat = 0
@@ -198,7 +198,7 @@ module mod_chym_io
           jdamietta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'CHYM - Damietta is at ',ii,jj
+          write(output_unit, *) 'CHYM - Damietta is at   ',ii,jj
         end if
         if ( is_inbox(lat_rosetta,lon_rosetta, &
                corner_lat(:,i,j),corner_lon(:,i,j)) ) then
@@ -207,7 +207,7 @@ module mod_chym_io
           jrosetta = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'CHYM - Rosetta is at ',ii,jj
+          write(output_unit, *) 'CHYM - Rosetta is at    ',ii,jj
         end if
 #endif
 #ifdef BLACKSEA
@@ -229,7 +229,7 @@ module mod_chym_io
           jkerch = jj
           chym_lsm(ii,jj) = 1.0
           contat = contat + 1
-          write(output_unit, *) 'CHYM - Kerch is at ',ii,jj
+          write(output_unit, *) 'CHYM - Kerch is at      ',ii,jj
         end if
 #endif
       end do

@@ -636,8 +636,8 @@ module mod_chym_io
 !     Local variable declarations
 !-----------------------------------------------------------------------
 
-    integer :: ncid, ncstat, dimid, varid, nt, start(4), count(4)
-    real :: last_time(1)
+    integer :: ncid, ncstat, dimid, varid, nt, start(3), count(3)
+    integer :: last_time(1)
 
 !-----------------------------------------------------------------------
 !     Open netCDF file
@@ -656,8 +656,9 @@ module mod_chym_io
 !     Read variables
 !-----------------------------------------------------------------------
 
-    start = (/ 1, 1, nt, 1 /)
-    count = (/ nlc, nbc, 1, 1 /)
+    write(output_unit, *) "CHYM - Reading timestep ",nt
+    start = (/ 1, 1, nt /)
+    count = (/ nlc, nbc, 1/)
 
     call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, port,                    &
@@ -669,16 +670,22 @@ module mod_chym_io
 
     ncstat = nf90_inq_varid(ncid, 'rno', varid)
     if ( ncstat == nf90_noerr ) then
+      write(output_unit, *) "CHYM - Runoff present, reading it"
+      if ( .not. allocated(chym_runoff) ) then
+        allocate(chym_runoff(nlc,nbc))
+      end if
       call nio_check(nf90_get_var(ncid, varid, chym_runoff,             &
                          start=start, count=count),__LINE__)
     end if
 
-    start = (/ nt, 1, 1, 1 /)
-    count = (/ 1, 1, 1, 1 /)
+    start(1) = nt
+    count(1) = 1
+    write(output_unit, *) "CHYM - Reading time information..."
     call nio_check(nf90_inq_varid(ncid, 'time', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, last_time, &
                          start=start(1:1), count=count(1:1)),__LINE__)
     pstep = last_time(1)+1
+    write(output_unit, *) "CHYM - last timestep is ",last_time(1)
 
 !-----------------------------------------------------------------------
 !     Close file

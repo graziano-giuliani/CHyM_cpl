@@ -110,10 +110,10 @@ module mod_chym_iface
         if (istep == istart .and. istart /= 1) then
           write(output_unit,*) "CHYM - Restarting the model ..."
         end if
-!       Fake runoff to test
-
+        ! Fake runoff to test
         chym_runoff = 1.0e-7
 #endif
+
         call chymmodel(chym_runoff, chym_dis, imon, iday)
 
         if (iswrit /= 0) then

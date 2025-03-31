@@ -54,6 +54,7 @@ module mod_chym_param
 
   real :: thrriv
   logical :: restarted = .false.
+  integer :: model_nsteps
   integer :: isread, iswrit
   integer :: jahr1, jahr2, jahr3, jahr4, nstep, pstep
   integer(8) :: sdate , edate
@@ -237,7 +238,7 @@ module mod_chym_param
              w2 * series(imon)  + &
              w3 * series(imonn) )
   end function mval
- 
+
   subroutine find_nearest_ocean(i,j,ii,jj)
     implicit none
     integer, intent(in) :: i, j

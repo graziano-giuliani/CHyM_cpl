@@ -33,7 +33,7 @@ module mod_chym_model
 !     Local variable declarations
 !-----------------------------------------------------------------------
 
-      integer :: i, j, ii, jj, imin, ilnd, idir, step
+      integer :: i, j, ii, jj, imin, ilnd, idir
       real :: dm, area, deltat, rainload
 
       chym_dis(:,:) = 0.0
@@ -41,9 +41,8 @@ module mod_chym_model
         chym_runoff = 0.0
       end where
 
-      step = 600        ! Number of step per days
-      deltat = 86400.0/real(step)
-      do imin = 1, step
+      deltat = 86400.0/real(model_nsteps)
+      do imin = 1, model_nsteps
         wkm1(:,:) = 0.0
         do j = 2, chym_nlat-1
           do i = 2, chym_nlon-1
@@ -52,7 +51,7 @@ module mod_chym_model
             if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
               ii = i+ir(idir)
               jj = j+jr(idir)
-              dm = max(port(i,j)*deltat,h2o(i,j))
+              dm = min(port(i,j)*deltat,h2o(i,j))
               wkm1(i,j) = wkm1(i,j) - dm
               wkm1(ii,jj) = wkm1(ii,jj) + dm
             end if

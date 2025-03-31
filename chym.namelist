@@ -1,8 +1,9 @@
 ! Namelist for CHyM coupled model
 
 &iniparam
- thrriv = 5400.0, ! Drained area threshold by a mouth point above wich
-                  ! the river is considered in the coupled system
+ model_nsteps = 600, ! Model steps per each day
+ thrriv = 5400.0,    ! Drained area threshold by a mouth point above wich
+                     ! the river is considered in the coupled system
 /
 
 &inputparam

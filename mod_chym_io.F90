@@ -49,7 +49,7 @@ module mod_chym_io
     integer :: iretval
     integer :: lun
 
-    namelist /iniparam/ thrriv
+    namelist /iniparam/ thrriv , model_nsteps
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -64,9 +64,16 @@ module mod_chym_io
       write(error_unit,*) 'CHYM - Error opening namelist file'//trim(ifile)
       stop
     end if
+    model_nsteps = -1
     read(lun, nml=iniparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(error_unit,*) 'CHYM - Error reading iniparam namelist'
+      stop
+    end if
+    if ( model_nsteps < 0 ) then
+      write(error_unit,*) 'CHYM - ERROR !'
+      write(error_unit,*) 'CHYM - Model steps per day : ',model_nsteps
+      write(error_unit,*) 'CHYM - ERROR !'
       stop
     end if
     rewind(lun)
@@ -563,8 +570,7 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
     call nio_check(nf90_sync(chymout%ncid),__LINE__)
-    chymout%nrec = chymout%nrec + 1
-
+    chymout%nrec = ilen
   end subroutine chym_out
 
   subroutine chym_rst(istep)
@@ -613,8 +619,7 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
     call nio_check(nf90_sync(chymrst%ncid),__LINE__)
-    chymrst%nrec = chymrst%nrec + 1
-
+    chymrst%nrec = ilen
   end subroutine chym_rst
 
   subroutine chym_ini()

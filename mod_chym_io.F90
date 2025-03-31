@@ -98,7 +98,7 @@ module mod_chym_io
 !     Local variable declarations
 !-----------------------------------------------------------------------
 
-    integer :: i,j,ii,jj,idir,ilnd
+    integer :: i,j,ii,jj,iii,jjj,idir,ilnd
     integer :: ncid, varid, dimid
     integer , dimension(2) :: idimid
     integer , dimension(3) :: ivarid
@@ -135,13 +135,17 @@ module mod_chym_io
     if (.not. allocated(wkm1)) allocate(wkm1(nlc,nbc))
     if (.not. allocated(bwet)) allocate(bwet(nlc,nbc))
     if (.not. allocated(h2o)) allocate(h2o(nlc,nbc))
+    if (.not. allocated(chym_runoff)) allocate(chym_runoff(nlc,nbc))
+    if (.not. allocated(chym_dis)) allocate(chym_dis(nlc,nbc))
     if (.not. allocated(manning)) allocate(manning(lntypes))
 
     port = 0
     wkm1 = 0
     bwet = 0
     h2o = 0
-    chym_lsm(:,:) = 0.0
+    chym_lsm = 0.0
+    chym_runoff = 0.0
+    chym_dis = 0.0
 
     call nio_check(nf90_inq_varid(ncid, 'manning', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, manning),__LINE__)
@@ -181,10 +185,12 @@ module mod_chym_io
     do j = 2, chym_nlat-1
       do i = 2, chym_nlon-1
         idir = fmap(i,j)
-        if ( idir >= 1 .and. idir <= 8 ) then   !5400 km^2 ~ 6 grid
-          ilnd = luse(i+ir(idir),j+jr(idir))
+        if ( idir >= 1 .and. idir <= 8 ) then
+          ii = i + ir(idir)
+          jj = j + jr(idir)
+          ilnd = luse(ii,jj)
           if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-            chym_lsm(i,j) = 1.0
+            chym_lsm(ii,jj) = 1.0
             contat = contat + 1
           end if
         end if
@@ -193,47 +199,60 @@ module mod_chym_io
         ! Bocca 2 : Lat 31.47, Lon 30.36 (Rosetta)  50%
         if ( is_inbox(lat_damietta,lon_damietta, &
                corner_lat(:,i,j),corner_lon(:,i,j)) ) then
-          call find_nearest_land(i,j,ii,jj)
+          call find_nearest_land(i,j,iii,jjj)
+          call find_nearest_ocean(iii,jjj,ii,jj)
           idamietta = ii
           jdamietta = jj
-          chym_lsm(ii,jj) = 1.0
-          contat = contat + 1
+          if ( chym_lsm(ii,jj) < 0.5 ) then
+            chym_lsm(ii,jj) = 1.0
+            contat = contat + 1
+          end if
           write(output_unit, *) 'CHYM - Damietta is at   ',ii,jj
         end if
         if ( is_inbox(lat_rosetta,lon_rosetta, &
                corner_lat(:,i,j),corner_lon(:,i,j)) ) then
-          call find_nearest_land(i,j,ii,jj)
+          call find_nearest_land(i,j,iii,jjj)
+          call find_nearest_ocean(iii,jjj,ii,jj)
           irosetta = ii
           jrosetta = jj
-          chym_lsm(ii,jj) = 1.0
-          contat = contat + 1
+          if ( chym_lsm(ii,jj) < 0.5 ) then
+            chym_lsm(ii,jj) = 1.0
+            contat = contat + 1
+          end if
           write(output_unit, *) 'CHYM - Rosetta is at    ',ii,jj
         end if
 #endif
 #ifdef BLACKSEA
         if (is_inbox(lat_dardanelli,lon_dardanelli, &
               corner_lat(:,i,j),corner_lon(:,i,j))) then
-          call find_nearest_land(i,j,ii,jj)
+          call find_nearest_land(i,j,iii,jjj)
+          call find_nearest_ocean(iii,jjj,ii,jj)
           idardanelli = ii
           jdardanelli = jj
-          chym_lsm(ii,jj) = 1.0
-          contat = contat + 1
+          if ( chym_lsm(ii,jj) < 0.5 ) then
+            chym_lsm(ii,jj) = 1.0
+            contat = contat + 1
+          end if
           write(output_unit, *) 'CHYM - Dardanelli is at ',ii,jj
         end if
 #endif
 #ifdef AZOV
         if (is_inbox(lat_kerch,lon_kerch, &
               corner_lat(:,i,j),corner_lon(:,i,j))) then
-          call find_nearest_land(i,j,ii,jj)
+          call find_nearest_land(i,j,iii,jjj)
+          call find_nearest_ocean(iii,jjj,ii,jj)
           ikerch = ii
           jkerch = jj
-          chym_lsm(ii,jj) = 1.0
-          contat = contat + 1
+          if ( chym_lsm(ii,jj) < 0.5 ) then
+            chym_lsm(ii,jj) = 1.0
+            contat = contat + 1
+          end if
           write(output_unit, *) 'CHYM - Kerch is at      ',ii,jj
         end if
 #endif
       end do
     end do
+
     call runoffspeed
 
     call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid),__LINE__)
@@ -272,30 +291,6 @@ module mod_chym_io
     write(output_unit, *) "CHYM - Diagnostic mouth position file created"
     write(output_unit, *) "CHYM - Total number of river mouths found : ",contat
   end subroutine read_init
-
-  subroutine find_nearest_land(i,j,ii,jj)
-    implicit none
-    integer, intent(in) :: i, j
-    integer, intent(out) :: ii, jj
-    if ( luse(i,j) /= ocean ) then
-      ii = i
-      jj = j
-    else
-      if ( all(luse(i-1:i+1,j-1:j+1) == ocean) ) then
-        write(error_unit, *) 'CHYM - No land point found! Will modify landmask!'
-        ii = i
-        jj = j
-        return
-      end if
-      do jj = j-1, j+1
-        do ii = i-1, i+1
-          if ( luse(ii,jj) /= ocean ) then
-            return
-          end if
-        end do
-      end do
-    end if
-  end subroutine find_nearest_land
 
   subroutine chym_out_init()
 
@@ -657,8 +652,8 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
     write(output_unit, *) "CHYM - Reading timestep ",nt
-    start = (/ 1, 1, nt /)
-    count = (/ nlc, nbc, 1/)
+    start = (/   1,   1, nt /)
+    count = (/ nlc, nbc,  1 /)
 
     call nio_check(nf90_inq_varid(ncid, 'dis', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, port,                    &
@@ -668,14 +663,18 @@ module mod_chym_io
     call nio_check(nf90_get_var(ncid, varid, h2o,                     &
                        start=start, count=count),__LINE__)
 
+    write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Discharge max value: ", &
+                             maxval(port)
+    write(output_unit,fmt='(1x,A,F16.2)')"CHYM - H2o max value      : ", &
+                             maxval(h2o)
+
     ncstat = nf90_inq_varid(ncid, 'rno', varid)
     if ( ncstat == nf90_noerr ) then
       write(output_unit, *) "CHYM - Runoff present, reading it"
-      if ( .not. allocated(chym_runoff) ) then
-        allocate(chym_runoff(nlc,nbc))
-      end if
       call nio_check(nf90_get_var(ncid, varid, chym_runoff,             &
                          start=start, count=count),__LINE__)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
+                               maxval(chym_runoff*1.0e7)
     end if
 
     start(1) = nt
@@ -691,6 +690,7 @@ module mod_chym_io
 !     Close file
 !-----------------------------------------------------------------------
 
+    call nio_check(nf90_close(ncid),__LINE__)
 
   end subroutine chym_ini
 

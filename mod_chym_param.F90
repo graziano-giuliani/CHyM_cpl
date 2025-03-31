@@ -1,4 +1,7 @@
 module mod_chym_param
+
+  use, intrinsic :: iso_fortran_env
+
   implicit none
 
 !-----------------------------------------------------------------------
@@ -259,5 +262,29 @@ module mod_chym_param
       end do
     end if
   end subroutine find_nearest_ocean
+
+  subroutine find_nearest_land(i,j,ii,jj)
+    implicit none
+    integer, intent(in) :: i, j
+    integer, intent(out) :: ii, jj
+    if ( luse(i,j) /= ocean ) then
+      ii = i
+      jj = j
+    else
+      if ( all(luse(i-1:i+1,j-1:j+1) == ocean) ) then
+        write(error_unit, *) 'CHYM - No land point found! Will modify landmask!'
+        ii = i
+        jj = j
+        return
+      end if
+      do jj = j-1, j+1
+        do ii = i-1, i+1
+          if ( luse(ii,jj) /= ocean ) then
+            return
+          end if
+        end do
+      end do
+    end if
+  end subroutine find_nearest_land
 
 end module mod_chym_param

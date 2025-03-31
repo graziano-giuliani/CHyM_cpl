@@ -14,7 +14,7 @@ module mod_chym_model
 !     Public subroutines
 !-----------------------------------------------------------------------
 
-  public :: chymmodel
+  public :: chymmodel , coupler
 
   contains
 
@@ -34,7 +34,7 @@ module mod_chym_model
 !-----------------------------------------------------------------------
 
       integer :: i, j, ii, jj, imin, ilnd, idir, step
-      real :: dm, area, deltat, rainload, tmp
+      real :: dm, area, deltat, rainload
 
       chym_dis(:,:) = 0.0
       where (chym_mask > 0)
@@ -81,14 +81,41 @@ module mod_chym_model
         end do
       end do
 
+      call coupler(imon,iday)
+
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Discharge max value: ", &
+                             maxval(port)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Bwet max value     : ", &
+                             maxval(bwet)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Alfa max value     : ", &
+                             maxval(alfa)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - H2o max value      : ", &
+                             maxval(h2o)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Wkm1 max value     : ", &
+                             maxval(wkm1)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Dx max value       : ", &
+                             maxval(chym_dx)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Area max value     : ", &
+                             maxval(chym_area)
+      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
+                             maxval(chym_runoff*1.0e7)
+    end subroutine chymmodel
+
+    subroutine coupler(imon,iday)
+      implicit none
+      integer, intent(in) :: imon, iday
+      integer :: i, j, ii, jj, ilnd, idir
+      real :: tmp
+
       do j = 2 , chym_nlat-1
         do i = 2 , chym_nlon-1
           idir = fmap(i,j)
           if ( idir >= 1 .and. idir <= 8 ) then
-            ilnd = luse(i+ir(idir),j+jr(idir))
-            !5400 km^2 ~ 6 grid points, with resolution of 33km, drained
+            ii = i + ir(idir)
+            jj = j + jr(idir)
+            ilnd = luse(ii,jj)
             if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-              chym_dis(i,j) = port(i,j)
+              chym_dis(ii,jj) = port(i,j)
             end if
           end if
         end do
@@ -126,22 +153,6 @@ module mod_chym_model
               "CHYM - Prescribed Dardanelli BS output :   ",tmp
 #endif
 
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Discharge max value: ", &
-                             maxval(port)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Bwet max value     : ", &
-                             maxval(bwet)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Alfa max value     : ", &
-                             maxval(alfa)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - H2o max value      : ", &
-                             maxval(h2o)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Wkm1 max value     : ", &
-                             maxval(wkm1)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Dx max value       : ", &
-                             maxval(chym_dx)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Area max value     : ", &
-                             maxval(chym_area)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
-                             maxval(chym_runoff)
-    end subroutine chymmodel
+    end subroutine coupler
 
 end module mod_chym_model

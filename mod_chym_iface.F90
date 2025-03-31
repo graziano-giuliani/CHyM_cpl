@@ -137,7 +137,7 @@ module mod_chym_iface
       logical, intent(in) :: restarted
       integer, intent(in) :: imon , iday
 
-      integer :: istep
+      integer :: istep, idir, i, j, ii, jj
 
 !-----------------------------------------------------------------------
 !     Run the model
@@ -160,6 +160,20 @@ module mod_chym_iface
         chym_runoff = 1.0e-7
 #endif
         call chymmodel(chym_runoff, chym_dis, imon, iday)
+
+        do j = 2 , nbc-1
+          do i = 2 , nlc-1
+            if ( chym_lsm(i,j) > 0.0 ) then
+              idir = fmap(i,j)
+              if ( idir == 0 ) then
+                call find_nearest_ocean(i,j,ii,jj)
+                chym_dis(ii,jj) = chym_dis(i,j)
+              else
+                chym_dis(i+ir(idir),j+jr(idir)) = chym_dis(i,j)
+              end if
+            end if
+          end do
+        end do
 
         if (iswrit /= 0) then
           if (mod(istep,iswrit) == 0) then

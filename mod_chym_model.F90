@@ -96,8 +96,8 @@ module mod_chym_model
                              maxval(chym_dx)
       write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Area max value     : ", &
                              maxval(chym_area)
-      write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
-                             maxval(chym_runoff*1.0e7)
+      write(output_unit,fmt='(1x,A,F16.2,A)')"CHYM - Runoff max value   : ", &
+                             maxval(chym_runoff)*86400*1000.0, ' mm/day'
     end subroutine chymmodel
 
     subroutine coupler(imon,iday)

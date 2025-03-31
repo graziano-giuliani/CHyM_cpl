@@ -679,7 +679,7 @@ module mod_chym_io
       call nio_check(nf90_get_var(ncid, varid, chym_runoff,             &
                          start=start, count=count),__LINE__)
       write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Runoff max value   : ", &
-                               maxval(chym_runoff*1.0e7)
+                          maxval(chym_runoff)*86400*1000.0, ' mm/day'
     end if
 
     start(1) = nt

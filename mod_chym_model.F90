@@ -65,7 +65,7 @@ module mod_chym_model
                ! m^3 of water recharge in the grid cell
                ! Area in the input file is in km^2, we put it in m^2
                ! m^2 * m/s * s = m^3
-               area = chym_area(i,j)*1.0e+06
+               area = chym_area(i,j)*1.0e6
                rainload = area*chym_runoff(i,j)*deltat
                if (rainload > 200000.0) then
                  write(error_unit,fmt='(A,F8.2)') &

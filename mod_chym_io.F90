@@ -726,14 +726,18 @@ module mod_chym_io
 
   subroutine runoffspeed
     implicit none
-    integer i,j,idir,iland
-    real mann
-    real alfamin,alfamax,enne,xgamma,delta,tresh,hrad
-    xgamma = 0.33
-    delta = 4.5                                       !cpar(8) in CHyM
-    tresh = 100.0                                     !cpar(6) in CHyM
-    alfamin = 0.1
-    alfamax = 50.0
+    integer :: i, j, idir, iland
+    real, parameter :: xgamma = 0.33
+    real, parameter :: delta = 4.5
+    real, parameter :: tresh = 100.0
+    real, parameter :: alfamin = 0.01
+    real, parameter :: alfamax = 0.7
+    ! alfa coefficient for hydraulic radius
+    real, parameter :: alfa_coeff = 0.0015
+    ! beta coefficient for hydraulic radius
+    real, parameter :: beta_coeff = 0.05
+    real, parameter :: exp1 = 2.0/3.0
+    real :: mann, enne, hrad
     alfa(:,:) = alfamin
     do j = 2, chym_nlat-1
       do i = 2, chym_nlon-1
@@ -756,12 +760,8 @@ module mod_chym_io
             enne = mann/ &
                     (1.+(delta-1.)*(1.+(chym_drai(i,j)-tresh)/tresh))
           endif
-          !In CHyM 0.0015 = cpar( 2) ---> Alpha coefficients for
-          !hydraulic radius (0.0015)
-          !In CHyM 0.050 = cpar( 3) ---> Beta coefficients for
-          !hydraulic radius (0.050)
-          hrad = 0.0015+0.050*((chym_drai(i,j)*1.e00)**xgamma)
-          alfa(i,j) = ((hrad**0.6666*accl(i,j)**0.5)/(enne))
+          hrad = alfa_coeff+beta_coeff*((chym_drai(i,j)*1.e00)**xgamma)
+          alfa(i,j) = ((hrad**exp1) * sqrt(accl(i,j)))/enne
           if ( chym_drai(i,j) > 5000 .and. &
                alfa(i,j) > 0.5 ) alfa(i,j) = 0.5
           if ( alfa(i,j) < alfamin ) alfa(i,j) = alfamin

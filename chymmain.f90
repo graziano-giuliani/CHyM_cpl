@@ -8,7 +8,7 @@ program chymmain
 !-----------------------------------------------------------------------
 !
   use mod_chym_iface
-  use mod_chym_param, only : nstep, pstep
+  use mod_chym_param, only : nstep, pstep, chym_runoff
 !
   implicit none
 
@@ -28,6 +28,12 @@ program chymmain
 !-----------------------------------------------------------------------
 !
   if (pstep == 0) pstep = pstep+1
+  ! Fake runoff to test
+  chym_runoff = 1.0e-7
   call chym_run(pstep, nstep, .false., 1, 1)
+  pstep = pstep + 1
+  call chym_run(pstep, nstep, .false., 1, 2)
+
+  call chym_finalize( )
 
 end program chymmain

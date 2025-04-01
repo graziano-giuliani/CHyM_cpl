@@ -176,6 +176,8 @@ module mod_chym_io
     call nio_check(nf90_get_var(ncid, varid, chym_area),__LINE__)
     call nio_check(nf90_inq_varid(ncid, 'dra', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, chym_drai),__LINE__)
+    call nio_check(nf90_inq_varid(ncid, 'alf', varid),__LINE__)
+    call nio_check(nf90_get_var(ncid, varid, alfa),__LINE__)
     call nio_check(nf90_close(ncid),__LINE__)
 
 !-----------------------------------------------------------------------
@@ -192,9 +194,11 @@ module mod_chym_io
     do j = 2, chym_nlat-1
       do i = 2, chym_nlon-1
         idir = fmap(i,j)
+        ii = i + ir(idir)
+        jj = j + jr(idir)
+        chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
+                                   chym_lat(ii,jj),chym_lon(ii,jj))
         if ( idir >= 1 .and. idir <= 8 ) then
-          ii = i + ir(idir)
-          jj = j + jr(idir)
           ilnd = luse(ii,jj)
           if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
             chym_lsm(ii,jj) = 1.0
@@ -259,8 +263,6 @@ module mod_chym_io
 #endif
       end do
     end do
-
-    call runoffspeed
 
     call nio_check(nf90_create('rivermouth.nc', nf90_clobber,ncid),__LINE__)
     call nio_check(nf90_def_dim(ncid,'lon',nlc,idimid(1)),__LINE__)
@@ -723,53 +725,6 @@ module mod_chym_io
     end if
 
   end subroutine nio_check
-
-  subroutine runoffspeed
-    implicit none
-    integer :: i, j, idir, iland
-    real, parameter :: xgamma = 0.33
-    real, parameter :: delta = 4.5
-    real, parameter :: tresh = 100.0
-    real, parameter :: alfamin = 0.01
-    real, parameter :: alfamax = 0.7
-    ! alfa coefficient for hydraulic radius
-    real, parameter :: alfa_coeff = 0.0015
-    ! beta coefficient for hydraulic radius
-    real, parameter :: beta_coeff = 0.05
-    real, parameter :: exp1 = 2.0/3.0
-    real :: mann, enne, hrad
-    alfa(:,:) = alfamin
-    do j = 2, chym_nlat-1
-      do i = 2, chym_nlon-1
-        idir = fmap(i,j)
-        iland = luse(i,j)
-        mann = manning(iland)
-        if ( idir >= 1 .and. idir <= 8 .and. &
-             iland /= ocean .and. iland > 0 ) then
-          if (iland.gt.lntypes.or.iland.le.0) then
-            write(error_unit, *) "CHYM - Error in line: 694, file : mod_chym_io"
-            call exit(0)
-          end if
-          ! This is in meters
-          chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
-                 chym_lat(i+ir(idir),j+jr(idir)),                       &
-                 chym_lon(i+ir(idir),j+jr(idir)))
-          if ( chym_drai(i,j) > tresh ) then
-            enne = mann/delta
-          else
-            enne = mann/ &
-                    (1.+(delta-1.)*(1.+(chym_drai(i,j)-tresh)/tresh))
-          endif
-          hrad = alfa_coeff+beta_coeff*((chym_drai(i,j)*1.e00)**xgamma)
-          alfa(i,j) = ((hrad**exp1) * sqrt(accl(i,j)))/enne
-          if ( chym_drai(i,j) > 5000 .and. &
-               alfa(i,j) > 0.5 ) alfa(i,j) = 0.5
-          if ( alfa(i,j) < alfamin ) alfa(i,j) = alfamin
-          if ( alfa(i,j) > alfamax ) alfa(i,j) = alfamax
-        endif
-      enddo
-    enddo
-  end subroutine runoffspeed
 
   real function geodistance(latt1,lonn1,latt2,lonn2)
     implicit none

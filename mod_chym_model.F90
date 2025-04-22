@@ -37,7 +37,7 @@ module mod_chym_model
       real :: dm, area, deltat, rainload
 
       chym_dis(:,:) = 0.0
-      where (chym_mask > 0)
+      where (chym_mask /= 2)
         chym_runoff = 0.0
       end where
 

@@ -1,7 +1,7 @@
 FC = mpiifx
 PRESCRIBED = -DNILE # -DAZOV -DBLACKSEA
 # PRODUCTION
-FCFLAGS = -O3 -fp-model precise -fp-model source -DCPL $(PRESCRIBED)
+FCFLAGS = -O3 -flto -xCORE-AVX512 -fp-model precise -fp-model source -DCPL $(PRESCRIBED)
 #FCFLAGS = -O3 -DCPL $(PRESCRIBED)
 # DEBUG
 #FCFLAGS = -O0 -g -Warn all -check all -traceback -DCPL $(PRESCRIBED)

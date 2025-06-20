@@ -49,7 +49,8 @@ module mod_chym_io
     integer :: iretval
     integer :: lun
 
-    namelist /iniparam/ thrriv , model_nsteps
+    namelist /iniparam/ thrriv , model_nsteps, efficiency, &
+            irloss, irmonfac
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -138,6 +139,7 @@ module mod_chym_io
     if (.not. allocated(fmap)) allocate(fmap(nlc,nbc))
     if (.not. allocated(accl)) allocate(accl(nlc,nbc))
     if (.not. allocated(luse)) allocate(luse(nlc,nbc))
+    if (.not. allocated(farm)) allocate(farm(nlc,nbc))
     if (.not. allocated(port)) allocate(port(nlc,nbc))
     if (.not. allocated(wkm1)) allocate(wkm1(nlc,nbc))
     if (.not. allocated(bwet)) allocate(bwet(nlc,nbc))
@@ -261,6 +263,22 @@ module mod_chym_io
           write(output_unit, *) 'CHYM - Kerch is at      ',ii,jj
         end if
 #endif
+      end do
+    end do
+
+    do j = 1, chym_nlat
+      do i = 1, chym_nlon
+        if ( luse(i,j) == 30 .or. luse(i,j) == 31 .or. &
+             luse(i,j) == 35 .or. luse(i,j) == 36 .or. &
+             luse(i,j) == 37 .or. luse(i,j) == 38 .or. &
+             luse(i,j) == 39 .or. luse(i,j) == 76 .or. &
+             luse(i,j) == 92 .or. luse(i,j) == 93 .or. &
+             luse(i,j) == 94 .or. luse(i,j) == 95 .or. &
+             luse(i,j) == 96 ) then
+          farm(i,j) = .true.
+        else
+          farm(i,j) = .false.
+        end if
       end do
     end do
 

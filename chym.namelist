@@ -4,6 +4,11 @@
  model_nsteps = 600, ! Model steps per each day
  thrriv = 5400.0,    ! Drained area threshold by a mouth point above wich
                      ! the river is considered in the coupled system
+ efficiency = 0.95,  ! maximum efficiency in transfer
+ irloss = 0.05,      ! Irrigation loss - zero for no loss
+ ! Monthly irrigation removal - zero for no withdrawal
+ !          Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec
+ irmonfac = 0.0, 0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.2, 0.1, 0.0, 0.0, 0.0,
 /
 
 &inputparam

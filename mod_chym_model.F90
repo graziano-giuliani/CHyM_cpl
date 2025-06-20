@@ -34,7 +34,7 @@ module mod_chym_model
 !-----------------------------------------------------------------------
 
       integer :: i, j, ii, jj, imin, ilnd, idir
-      real :: dm, area, deltat, rainload
+      real :: dm, area, deltat, rainload, irtmp
 
       chym_dis(:,:) = 0.0
       where (chym_mask /= 2)
@@ -51,7 +51,7 @@ module mod_chym_model
             if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
               ii = i+ir(idir)
               jj = j+jr(idir)
-              dm = min(port(i,j)*deltat,h2o(i,j))
+              dm = min(port(i,j)*deltat, h2o(i,j)*efficiency)
               wkm1(i,j) = wkm1(i,j) - dm
               wkm1(ii,jj) = wkm1(ii,jj) + dm
             end if
@@ -73,7 +73,15 @@ module mod_chym_model
                endif
                h2o(i,j) = h2o(i,j) + wkm1(i,j) + rainload
                h2o(i,j) = max(h2o(i,j),0.0)
-               bwet(i,j) = h2o(i,j) / chym_dx(i,j)
+               if ( farm(i,j) ) then
+                 irtmp = irmonfac(imon)/deltat
+                 ! Some water is not transmitted for irrigation
+                 bwet(i,j) = (1.0-irtmp) * h2o(i,j) / chym_dx(i,j)
+                 ! Evaporative loss of the water for irrigation
+                 h2o(i,j) = (1.0-irloss*irtmp) * h2o(i,j)
+               else
+                 bwet(i,j) = h2o(i,j) / chym_dx(i,j)
+               end if
                port(i,j) = alfa(i,j) * bwet(i,j)
             end if
           end do

@@ -101,7 +101,8 @@ module mod_chym_param
   real, allocatable :: corner_lat(:,:,:)
   ! CHyM corner lon
   real, allocatable :: corner_lon(:,:,:)
-
+  ! Farmland ?
+  logical, allocatable :: farm(:,:)
 
   integer, parameter :: lntypes = 110
   integer, parameter :: ocean = 15
@@ -167,6 +168,12 @@ module mod_chym_param
   real , parameter :: lon_kerch = 36.53
   real , parameter :: lat_kerch = 45.11
 #endif
+
+  real :: efficiency
+  real :: irloss = 0.05
+  ! Northern emisphere summer !!!!
+  real, dimension(12) :: irmonfac = &
+    [ 0.0, 0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.2, 0.1, 0.0, 0.0, 0.0 ]
 
   contains
 

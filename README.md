@@ -6,7 +6,8 @@ identical to the model available in stand-alone version in [CHyM-roff](https://g
 
 The difference is the removal of the MPI parallelization code, the absence
 of any pre processing program, the lack of input data part (coming in from the
-[RegESM](https://github.com/graziano-giuliani/RegESM) coupling.
+[RegESM](https://github.com/graziano-giuliani/RegESM) coupling) and the
+very simplified output module.
 
 The eventually binary created program is just a placeholder to verify in debug
 all is correctly working. The model can actually work ONLY in the coupled

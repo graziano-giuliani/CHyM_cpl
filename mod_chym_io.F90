@@ -50,7 +50,7 @@ module mod_chym_io
     integer :: lun
 
     namelist /iniparam/ thrriv , model_nsteps, efficiency, &
-            irloss, irmonfac
+            nfarm, ifarm, irloss, irmonfac
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -268,13 +268,7 @@ module mod_chym_io
 
     do j = 1, chym_nlat
       do i = 1, chym_nlon
-        if ( luse(i,j) == 30 .or. luse(i,j) == 31 .or. &
-             luse(i,j) == 35 .or. luse(i,j) == 36 .or. &
-             luse(i,j) == 37 .or. luse(i,j) == 38 .or. &
-             luse(i,j) == 39 .or. luse(i,j) == 76 .or. &
-             luse(i,j) == 92 .or. luse(i,j) == 93 .or. &
-             luse(i,j) == 94 .or. luse(i,j) == 95 .or. &
-             luse(i,j) == 96 ) then
+        if ( any(ifarm(1:nfarm) == luse(i,j) ) ) then
           farm(i,j) = .true.
         else
           farm(i,j) = .false.

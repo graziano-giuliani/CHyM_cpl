@@ -12,18 +12,25 @@ module mod_chym_param
 !     fscal: resolution of the model
 !-----------------------------------------------------------------------
 
+  integer, parameter :: lntypes = 110
+  integer, parameter :: ocean = 15
+  integer, parameter :: nmemrf = 5
+  integer, parameter :: nmemlf = 1
+  integer, parameter :: mm = 4
+
   integer :: nlc
   integer :: nbc
   integer :: chym_nlon
   integer :: chym_nlat
-  real, parameter :: umfang = 360.0
   real, allocatable :: areadom(:)
   integer, allocatable :: pointn(:)
   integer, allocatable :: npoint(:)
   real, allocatable :: portata(:)
-  integer ir(9),jr(9)
-  data ir /-1, 0, 1, 1, 1, 0,-1,-1,0/
-  data jr / 1, 1, 1, 0,-1,-1,-1, 0,0/
+  integer :: nfarm
+  integer, dimension(lntypes) :: ifarm
+
+  integer, dimension(9), parameter :: ir = [-1, 0, 1, 1, 1, 0,-1,-1, 0]
+  integer, dimension(9), parameter :: jr = [ 1, 1, 1, 0,-1,-1,-1, 0, 0]
 
 !-----------------------------------------------------------------------
 !     CHYM model I/O unit params
@@ -103,12 +110,6 @@ module mod_chym_param
   real, allocatable :: corner_lon(:,:,:)
   ! Farmland ?
   logical, allocatable :: farm(:,:)
-
-  integer, parameter :: lntypes = 110
-  integer, parameter :: ocean = 15
-  integer, parameter :: nmemrf = 5
-  integer, parameter :: nmemlf = 1
-  integer, parameter :: mm = 4
 
   real, allocatable :: chym_runoff(:,:)
   real, allocatable :: chym_dis(:,:)

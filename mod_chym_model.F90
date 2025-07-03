@@ -51,7 +51,7 @@ module mod_chym_model
             if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
               ii = i+ir(idir)
               jj = j+jr(idir)
-              dm = min(port(i,j)*deltat, h2o(i,j)*efficiency)
+              dm = min(port(i,j)*deltat*efficiency, h2o(i,j)*efficiency)
               wkm1(i,j) = wkm1(i,j) - dm
               wkm1(ii,jj) = wkm1(ii,jj) + dm
             end if

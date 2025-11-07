@@ -11,6 +11,9 @@ module mod_chym_iface
   use mod_chym_model
 
   implicit none
+
+  logical :: model_standalone
+
   private
 
 !-----------------------------------------------------------------------
@@ -24,9 +27,10 @@ module mod_chym_iface
 
   contains
 
-    subroutine chym_init
+    subroutine chym_init(mpiCommunicator)
       implicit none
-
+      integer, intent(in), optional :: mpiCommunicator
+      integer :: iprov, ierr, irank, nproc
       character(len=256) :: namelistfile
 
 !-----------------------------------------------------------------------
@@ -36,6 +40,43 @@ module mod_chym_iface
       write(output_unit, *) 'This is CHYM - coupled runoff version'
       write(output_unit, *) 'Version coupled in RegCM-ES-1.0'
       write(output_unit, *) 'CHYM - Reading namelist files'
+
+      if (present(mpiCommunicator)) then
+        call mpi_comm_dup(mpiCommunicator,mycomm,ierr)
+        if ( ierr /= 0 ) then
+          write(error_unit,*) 'Cannot get communicator!'
+          call mpi_abort(mpiCommunicator,100,ierr)
+        end if
+        model_standalone = .false.
+      else
+        call mpi_init_thread(mpi_thread_single,iprov,ierr)
+        if ( ierr /= mpi_success ) then
+          write(error_unit,*) 'Cannot initilize MPI'
+          stop
+        end if
+        call mpi_comm_dup(MPI_COMM_WORLD,mycomm,ierr)
+        if ( ierr /= 0 ) then
+          write(error_unit,*) 'Cannot get communicator!'
+          call mpi_abort(mpiCommunicator,100,ierr)
+        end if
+        model_standalone = .true.
+      end if
+
+      call mpi_comm_rank(mycomm, irank, ierr)
+      if ( ierr /= 0 ) then
+        write(error_unit,*) 'mpi_comm_rank Failure!'
+        call mpi_abort(mycomm,3,ierr)
+      end if
+      call mpi_comm_size(mycomm, nproc, ierr)
+      if ( ierr /= 0 ) then
+        write(error_unit,*) 'mpi_comm_size Failure!'
+        call mpi_abort(mycomm,4,ierr)
+      end if
+
+      if ( nproc > 1 ) then
+        write(error_unit,*) 'CHyM for coupling runs on a single MPI process'
+        call mpi_abort(mycomm,5,ierr)
+      end if
 
 #ifdef CPL
       namelistfile = 'chym.namelist'
@@ -132,7 +173,11 @@ module mod_chym_iface
 
     subroutine chym_finalize()
       implicit none
+      integer :: ierr
       call chym_dispose( )
+      if ( model_standalone ) then
+        call mpi_finalize(ierr)
+      end if
       write(output_unit, *) 'CHyM model finalized. Goodbye!'
     end subroutine chym_finalize
 

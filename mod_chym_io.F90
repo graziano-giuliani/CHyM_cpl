@@ -10,10 +10,13 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
    use, intrinsic :: iso_fortran_env
+   use mpi
    use mod_chym_param
 
    implicit none
    private
+
+   integer, public :: mycomm
 
    public :: read_config
    public :: read_init
@@ -63,31 +66,31 @@ module mod_chym_io
          action='read', iostat=iretval)
     if ( iretval /= 0 ) then
       write(error_unit,*) 'CHYM - Error opening namelist file'//trim(ifile)
-      stop
+      call mpi_abort(mycomm,1,iretval)
     end if
     model_nsteps = -1
     read(lun, nml=iniparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(error_unit,*) 'CHYM - Error reading iniparam namelist'
-      stop
+      call mpi_abort(mycomm,1,iretval)
     end if
     if ( model_nsteps < 0 ) then
       write(error_unit,*) 'CHYM - ERROR !'
       write(error_unit,*) 'CHYM - Model steps per day : ',model_nsteps
       write(error_unit,*) 'CHYM - ERROR !'
-      stop
+      call mpi_abort(mycomm,1,iretval)
     end if
     rewind(lun)
     read(lun, nml=inputparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(error_unit,*) 'CHYM - Error reading inputparam namelist'
-      stop
+      call mpi_abort(mycomm,1,iretval)
     end if
     rewind(lun)
     read(lun, nml=timeparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(error_unit,*) 'CHYM - Error reading timeparam namelist'
-      stop
+      call mpi_abort(mycomm,1,iretval)
     end if
     jahr1 = sdate/1000000
     jahr2 = (sdate-jahr1*1000000)/10000
@@ -733,7 +736,7 @@ module mod_chym_io
     if (istatus /= nf90_noerr) then
       write(error_unit, *) 'CHYM - At line ',line
       write(error_unit, *) trim(nf90_strerror(istatus))
-      stop 2
+      call mpi_abort(mycomm,2,istatus)
     end if
 
   end subroutine nio_check

@@ -732,11 +732,12 @@ module mod_chym_io
 
     integer, intent(in) :: istatus
     integer, intent(in) :: line
+    integer :: ierr
 
     if (istatus /= nf90_noerr) then
       write(error_unit, *) 'CHYM - At line ',line
       write(error_unit, *) trim(nf90_strerror(istatus))
-      call mpi_abort(mycomm,2,istatus)
+      call mpi_abort(mycomm,2,ierr)
     end if
 
   end subroutine nio_check

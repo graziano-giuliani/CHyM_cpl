@@ -34,7 +34,7 @@ module mod_chym_model
 !-----------------------------------------------------------------------
 
       integer :: i, j, ii, jj, imin, ilnd, idir
-      real :: dm, area, deltat, rainload, irtmp
+      real :: dm, area, deltat, h2oload, irtmp
 
       chym_dis(:,:) = 0.0
       where (chym_mask /= 2)
@@ -66,13 +66,14 @@ module mod_chym_model
                ! Area in the input file is in km^2, we put it in m^2
                ! m^2 * m/s * s = m^3
                area = chym_area(i,j)*1.0e6
-               rainload = area*chym_runoff(i,j)*deltat
-               if (rainload > 200000.0) then
+               h2oload = area*chym_runoff(i,j)*deltat
+               if (h2oload > 200000.0) then
                  write(error_unit,fmt='(A,F8.2)') &
-                         "CHYM - *WARNING VERY BIG RAINLOAD*:", rainload
+                         "CHYM - *WARNING VERY BIG H2O RELOAD* : ", h2oload
                endif
-               h2o(i,j) = h2o(i,j) + wkm1(i,j) + rainload
-               h2o(i,j) = max(h2o(i,j),0.0)
+               h2o(i,j) = h2o(i,j) + wkm1(i,j) + &
+                               h2o2h2o_tuning_coefficient * h2oload
+               h2o(i,j) = max(h2o(i,j),minh2o)
                if ( farm(i,j) ) then
                  irtmp = irmonfac(imon)/deltat
                  ! Some water is not transmitted for irrigation

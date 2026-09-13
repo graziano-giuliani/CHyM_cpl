@@ -53,7 +53,8 @@ module mod_chym_io
     integer :: lun
 
     namelist /iniparam/ thrriv , model_nsteps, efficiency, &
-            nfarm, ifarm, irloss, irmonfac
+            minh2o, nfarm, ifarm, irloss, irmonfac, &
+            h2o2h2o_tuning_coefficient, riverrad
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -61,6 +62,13 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 !     Read parameters
 !-----------------------------------------------------------------------
+    efficiency = 1.0
+    minh2o = 20.0
+    nfarm = 0
+    ifarm(:) = 0
+    irloss = 0.0
+    irmonfac(:) = 0.0
+    h2o2h2o_tuning_coefficient= 1.0
 
     open(newunit=lun, file=ifile, status='old', &
          action='read', iostat=iretval)
@@ -110,7 +118,7 @@ module mod_chym_io
 !-----------------------------------------------------------------------
 
     integer :: i,j,ii,jj,iii,jjj,idir,ilnd
-    integer :: ncid, varid, dimid
+    integer :: ncid, varid, dimid, istat
     integer , dimension(2) :: idimid
     integer , dimension(3) :: ivarid
     integer :: contat
@@ -139,6 +147,7 @@ module mod_chym_io
     if (.not. allocated(corner_lat)) allocate(corner_lat(4,nlc,nbc))
     if (.not. allocated(corner_lon)) allocate(corner_lon(4,nlc,nbc))
     if (.not. allocated(alfa)) allocate(alfa(nlc,nbc))
+    if (.not. allocated(omdis)) allocate(omdis(nlc,nbc))
     if (.not. allocated(fmap)) allocate(fmap(nlc,nbc))
     if (.not. allocated(accl)) allocate(accl(nlc,nbc))
     if (.not. allocated(luse)) allocate(luse(nlc,nbc))
@@ -183,6 +192,12 @@ module mod_chym_io
     call nio_check(nf90_get_var(ncid, varid, chym_drai),__LINE__)
     call nio_check(nf90_inq_varid(ncid, 'alf', varid),__LINE__)
     call nio_check(nf90_get_var(ncid, varid, alfa),__LINE__)
+    istat = nf90_inq_varid(ncid, 'dis', varid)
+    if ( istat == nf90_noerr ) then 
+      call nio_check(nf90_get_var(ncid, varid, omdis),__LINE__)
+    else
+      omdis = riverrad
+    end if
     call nio_check(nf90_close(ncid),__LINE__)
 
 !-----------------------------------------------------------------------
@@ -206,7 +221,7 @@ module mod_chym_io
         if ( idir >= 1 .and. idir <= 8 ) then
           ilnd = luse(ii,jj)
           if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-            chym_lsm(ii,jj) = 1.0
+            chym_lsm(ii,jj) = max(omdis(i,j),1.0)
             contat = contat + 1
           end if
         end if
@@ -220,7 +235,7 @@ module mod_chym_io
           idamietta = ii
           jdamietta = jj
           if ( chym_lsm(ii,jj) < 0.5 ) then
-            chym_lsm(ii,jj) = 1.0
+            chym_lsm(ii,jj) = 200.0
             contat = contat + 1
           end if
           write(output_unit, *) 'CHYM - Damietta is at   ',ii,jj
@@ -232,7 +247,7 @@ module mod_chym_io
           irosetta = ii
           jrosetta = jj
           if ( chym_lsm(ii,jj) < 0.5 ) then
-            chym_lsm(ii,jj) = 1.0
+            chym_lsm(ii,jj) = 200.0
             contat = contat + 1
           end if
           write(output_unit, *) 'CHYM - Rosetta is at    ',ii,jj
@@ -246,7 +261,7 @@ module mod_chym_io
           idardanelli = ii
           jdardanelli = jj
           if ( chym_lsm(ii,jj) < 0.5 ) then
-            chym_lsm(ii,jj) = 1.0
+            chym_lsm(ii,jj) = 4000.0
             contat = contat + 1
           end if
           write(output_unit, *) 'CHYM - Dardanelli is at ',ii,jj
@@ -260,7 +275,7 @@ module mod_chym_io
           ikerch = ii
           jkerch = jj
           if ( chym_lsm(ii,jj) < 0.5 ) then
-            chym_lsm(ii,jj) = 1.0
+            chym_lsm(ii,jj) = max(omdis(i,j),1.0)
             contat = contat + 1
           end if
           write(output_unit, *) 'CHYM - Kerch is at      ',ii,jj

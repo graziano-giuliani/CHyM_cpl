@@ -1,9 +1,12 @@
 &iniparam
  model_nsteps = 300,
  thrriv = 5400.0,
- efficiency = 0.9999,
- nfarm = 1,
+ efficiency = 1.0,
+ minh2o = 20.0,
+ h2o2h2o_tuning_coefficient = 1.25,
+ nfarm = 0,
  ifarm = 76,
+ riverrad = 50.0,
  irloss = 0.10,
  irmonfac = 0.8, 0.2, 0.5, 0.5, 0.0, 1.8, 1.8, 1.7, 0.9, 0.9, 0.5, 0.8,
 /

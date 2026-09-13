@@ -84,6 +84,8 @@ module mod_chym_param
   real, allocatable :: h2o(:,:)
   ! Effective water flow velocity (m/s)
   real, allocatable :: alfa(:,:)
+  ! Mean discarge from previous rum (m**3/s)
+  real, allocatable :: omdis(:,:)
   ! Flow directions map
   integer, allocatable :: fmap(:,:)
   ! Acclivity map
@@ -171,10 +173,12 @@ module mod_chym_param
 #endif
 
   real :: efficiency
-  real :: irloss = 0.05
+  real :: minh2o
+  real :: irloss
+  real :: h2o2h2o_tuning_coefficient
+  real :: riverrad !! River radius for Ocean Model (or dis in stk)
   ! Northern emisphere summer !!!!
-  real, dimension(12) :: irmonfac = &
-    [ 0.0, 0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.2, 0.1, 0.0, 0.0, 0.0 ]
+  real, dimension(12) :: irmonfac
 
   contains
 

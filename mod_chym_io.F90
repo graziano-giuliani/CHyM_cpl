@@ -52,9 +52,8 @@ module mod_chym_io
     integer :: iretval
     integer :: lun
 
-    namelist /iniparam/ thrriv , model_nsteps, efficiency, &
-            minh2o, nfarm, ifarm, irloss, irmonfac, &
-            h2o2h2o_tuning_coefficient, riverrad
+    namelist /iniparam/ model_nsteps, efficiency, &
+            nfarm, ifarm, irloss, irmonfac, riverrad
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -63,12 +62,10 @@ module mod_chym_io
 !     Read parameters
 !-----------------------------------------------------------------------
     efficiency = 1.0
-    minh2o = 20.0
     nfarm = 0
     ifarm(:) = 0
     irloss = 0.0
     irmonfac(:) = 0.0
-    h2o2h2o_tuning_coefficient= 1.0
 
     open(newunit=lun, file=ifile, status='old', &
          action='read', iostat=iretval)
@@ -103,7 +100,7 @@ module mod_chym_io
     jahr1 = sdate/1000000
     jahr2 = (sdate-jahr1*1000000)/10000
     jahr3 = (sdate-(jahr1*1000000+jahr2*10000))/100
-    jahr4 = sdate-jahr1*1000000+jahr2*10000+jahr3*100
+    jahr4 = sdate-(jahr1*1000000+jahr2*10000+jahr3*100)
     write(output_unit, *) "CHYM - Year ",jahr1,",month ",jahr2,",day ",jahr3
     close(lun)
   end subroutine read_config
@@ -210,19 +207,24 @@ module mod_chym_io
       write(output_unit, *) "CHYM - Successfully read chym restart data"
     end if
 
+    ! Every land cell draining into the coupled sea (chym_mask == 1) is a
+    ! river mouth, whatever its drainage area: all of them deliver water.
+    ! fdm = 9 marks an endorheic sink (no outflow).
     contat = 0
+    chym_dx(:,:) = 0.1
     do j = 2, chym_nlat-1
       do i = 2, chym_nlon-1
         idir = fmap(i,j)
-        ii = i + ir(idir)
-        jj = j + jr(idir)
-        chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
-                                   chym_lat(ii,jj),chym_lon(ii,jj))
         if ( idir >= 1 .and. idir <= 8 ) then
+          ii = i + ir(idir)
+          jj = j + jr(idir)
+          chym_dx(i,j) = geodistance(chym_lat(i,j),chym_lon(i,j),     &
+                                     chym_lat(ii,jj),chym_lon(ii,jj))
           ilnd = luse(ii,jj)
-          if ( chym_drai(i,j) > thrriv .and. ilnd == ocean ) then
-            chym_lsm(ii,jj) = max(omdis(i,j),1.0)
-            contat = contat + 1
+          if ( luse(i,j) /= ocean .and. ilnd == ocean .and. &
+               chym_mask(ii,jj) == 1 ) then
+            if ( chym_lsm(ii,jj) <= 0.0 ) contat = contat + 1
+            chym_lsm(ii,jj) = max(chym_lsm(ii,jj),omdis(i,j),1.0)
           end if
         end if
 #ifdef NILE

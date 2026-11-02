@@ -59,7 +59,6 @@ module mod_chym_param
 !     CHYM model config parameters
 !-----------------------------------------------------------------------
 
-  real :: thrriv
   logical :: restarted = .false.
   integer :: model_nsteps
   integer :: isread, iswrit
@@ -173,9 +172,7 @@ module mod_chym_param
 #endif
 
   real :: efficiency
-  real :: minh2o
   real :: irloss
-  real :: h2o2h2o_tuning_coefficient
   real :: riverrad !! River radius for Ocean Model (or dis in stk)
   ! Northern emisphere summer !!!!
   real, dimension(12) :: irmonfac

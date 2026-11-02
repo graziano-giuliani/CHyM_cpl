@@ -113,6 +113,7 @@ module mod_chym_iface
 
       if ( isread == 1 ) then
         write(output_unit, *) 'CHYM - WARM RESTART.'
+        call mouth_snapshot( )
         call coupler(imon,iday)
       else
         write(output_unit, *) 'CHYM - COLD START.'

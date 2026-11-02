@@ -49,6 +49,9 @@ module mod_chym_model
 
       deltat = 86400.0/real(model_nsteps)
       daysec = real(deltat,8)*real(model_nsteps,8)
+      ! Storage floor (m^3): zero, as in CHyM-roff. Must be set: it was
+      ! left uninitialised when minh2o was removed.
+      hmin = 0.0
       qin = 0.0d0
       qsea = 0.0d0
       qout = 0.0d0
@@ -70,8 +73,10 @@ module mod_chym_model
               wkm1(i,j) = wkm1(i,j) - dm
               if ( luse(ii,jj) == ocean ) then
                 if ( chym_mask(ii,jj) == 1 ) then
-                  ! Into the coupled sea: delivered, every mouth, any size
-                  chym_dis(ii,jj) = chym_dis(ii,jj) + dm
+                  ! Into the coupled sea: delivered to the outlet this
+                  ! mouth is aggregated into (see aggregate_mouths)
+                  chym_dis(colx(ii,jj),coly(ii,jj)) = &
+                    chym_dis(colx(ii,jj),coly(ii,jj)) + dm
                   qsea = qsea + dm
                 else
                   ! Out of the catchments
@@ -186,7 +191,8 @@ module mod_chym_model
             ii = i + ir(idir)
             jj = j + jr(idir)
             if ( luse(ii,jj) == ocean .and. chym_mask(ii,jj) == 1 ) then
-              chym_dis(ii,jj) = chym_dis(ii,jj) + port(i,j)
+              chym_dis(colx(ii,jj),coly(ii,jj)) = &
+                chym_dis(colx(ii,jj),coly(ii,jj)) + port(i,j)
             end if
           end if
         end do
@@ -220,6 +226,9 @@ module mod_chym_model
 
 #ifdef NILE
       tmp = 0.5 * mval(nile_fresh_flux,imon,iday)
+      write(output_unit,fmt='(1x,A,F16.2)') &
+        "CHYM - Routed water replaced at Nile outlets:", &
+        chym_dis(idamietta,jdamietta) + chym_dis(irosetta,jrosetta)
       chym_dis(idamietta,jdamietta) = tmp
       chym_dis(irosetta,jrosetta) = tmp
       write(output_unit,fmt='(1x,A,F16.2)') &

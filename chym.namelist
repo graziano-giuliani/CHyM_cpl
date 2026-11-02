@@ -4,6 +4,7 @@
  nfarm = 0,
  ifarm = 76,
  riverrad = 50.0,
+ mouthsep = 25.0,
  irloss = 0.10,
  irmonfac = 0.8, 0.2, 0.5, 0.5, 0.0, 1.8, 1.8, 1.7, 0.9, 0.9, 0.5, 0.8,
 /

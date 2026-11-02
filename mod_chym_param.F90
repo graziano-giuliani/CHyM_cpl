@@ -174,6 +174,12 @@ module mod_chym_param
   real :: efficiency
   real :: irloss
   real :: riverrad !! River radius for Ocean Model (or dis in stk)
+  ! Minimum distance (km) between the river outlets passed to the ocean.
+  ! Mouths closer than this are aggregated into the largest one nearby.
+  real :: mouthsep
+  ! For each sea cell receiving water: the outlet (collector) cell it is
+  ! aggregated into.
+  integer, allocatable :: colx(:,:), coly(:,:)
   ! Northern emisphere summer !!!!
   real, dimension(12) :: irmonfac
 

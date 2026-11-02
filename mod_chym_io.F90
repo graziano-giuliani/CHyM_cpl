@@ -53,7 +53,7 @@ module mod_chym_io
     integer :: lun
 
     namelist /iniparam/ model_nsteps, efficiency, &
-            nfarm, ifarm, irloss, irmonfac, riverrad
+            nfarm, ifarm, irloss, irmonfac, riverrad, mouthsep
     namelist /inputparam/ isread, iswrit, nstep, &
             dnres, dnini, dnout, dnstt
     namelist /timeparam/ sdate, edate, calendar
@@ -66,6 +66,7 @@ module mod_chym_io
     ifarm(:) = 0
     irloss = 0.0
     irmonfac(:) = 0.0
+    mouthsep = 25.0
 
     open(newunit=lun, file=ifile, status='old', &
          action='read', iostat=iretval)
@@ -137,6 +138,8 @@ module mod_chym_io
     if (.not. allocated(chym_area)) allocate(chym_area(nlc,nbc))
     if (.not. allocated(chym_drai)) allocate(chym_drai(nlc,nbc))
     if (.not. allocated(chym_lsm)) allocate(chym_lsm(nlc,nbc))
+    if (.not. allocated(colx)) allocate(colx(nlc,nbc))
+    if (.not. allocated(coly)) allocate(coly(nlc,nbc))
     if (.not. allocated(chym_dx)) allocate(chym_dx(nlc,nbc))
     if (.not. allocated(chym_lat)) allocate(chym_lat(nlc,nbc))
     if (.not. allocated(chym_mask)) allocate(chym_mask(nlc,nbc))
@@ -285,6 +288,8 @@ module mod_chym_io
 #endif
       end do
     end do
+
+    call aggregate_mouths(contat)
 
     do j = 1, chym_nlat
       do i = 1, chym_nlon
@@ -758,6 +763,113 @@ module mod_chym_io
     end if
 
   end subroutine nio_check
+
+  ! Merge river mouths closer than mouthsep (km) into outlets (collectors).
+  ! The largest mouths become collectors first; prescribed outlets (Nile,
+  ! Dardanelles, Kerch) always do. Every other mouth sends its water to the
+  ! nearest collector, which is less than mouthsep away by construction.
+  ! The ocean coupler sees only the collectors, all at least mouthsep apart,
+  ! so RegESM's isolated-point river detection keeps every one of them.
+  subroutine aggregate_mouths(nout)
+    implicit none
+    integer, intent(out) :: nout
+    integer :: nm, n, k, l, i, j, nbest
+    integer, allocatable :: mi(:), mj(:), ord(:), col(:), tgt(:)
+    real, allocatable :: w(:), key(:)
+    logical, allocatable :: forced(:), done(:)
+    real :: d, dbest
+
+    nm = count(chym_lsm > 0.0)
+    colx = 0
+    coly = 0
+    nout = 0
+    if ( nm == 0 ) return
+    allocate(mi(nm), mj(nm), w(nm), key(nm), forced(nm), done(nm))
+    allocate(ord(nm), col(nm), tgt(nm))
+    n = 0
+    do j = 1, chym_nlat
+      do i = 1, chym_nlon
+        if ( chym_lsm(i,j) > 0.0 ) then
+          n = n + 1
+          mi(n) = i
+          mj(n) = j
+          w(n) = chym_lsm(i,j)
+          forced(n) = is_prescribed(i,j)
+        end if
+      end do
+    end do
+    ! Processing order: prescribed outlets, then decreasing weight
+    key = w
+    where ( forced ) key = huge(1.0)
+    done = .false.
+    do k = 1, nm
+      n = maxloc(key, dim=1, mask=.not. done)
+      ord(k) = n
+      done(n) = .true.
+    end do
+    ! Greedy selection of the collectors
+    nout = 0
+    do k = 1, nm
+      n = ord(k)
+      if ( .not. forced(n) ) then
+        dbest = huge(1.0)
+        do l = 1, nout
+          d = geodistance(chym_lat(mi(n),mj(n)),chym_lon(mi(n),mj(n)), &
+                chym_lat(mi(col(l)),mj(col(l))),chym_lon(mi(col(l)),mj(col(l))))
+          dbest = min(dbest, d)
+          if ( dbest <= mouthsep*1000.0 ) exit
+        end do
+        if ( dbest <= mouthsep*1000.0 ) cycle
+      end if
+      nout = nout + 1
+      col(nout) = n
+    end do
+    ! Assign every mouth to its nearest collector
+    do n = 1, nm
+      dbest = huge(1.0)
+      nbest = 1
+      do l = 1, nout
+        d = geodistance(chym_lat(mi(n),mj(n)),chym_lon(mi(n),mj(n)), &
+              chym_lat(mi(col(l)),mj(col(l))),chym_lon(mi(col(l)),mj(col(l))))
+        if ( d < dbest ) then
+          dbest = d
+          nbest = l
+        end if
+      end do
+      tgt(n) = col(nbest)
+    end do
+    ! Mouths that are collectors map onto themselves (also the forced ones)
+    do l = 1, nout
+      tgt(col(l)) = col(l)
+    end do
+    ! New outlet map: weight of a collector = sum of its members' weights
+    chym_lsm = 0.0
+    do n = 1, nm
+      colx(mi(n),mj(n)) = mi(tgt(n))
+      coly(mi(n),mj(n)) = mj(tgt(n))
+      chym_lsm(mi(tgt(n)),mj(tgt(n))) = chym_lsm(mi(tgt(n)),mj(tgt(n))) + w(n)
+    end do
+    write(output_unit,'(1x,a,i6,a,i6,a,f6.1,a)') 'CHYM - ', nm, &
+      ' river mouth cells aggregated into ', nout, &
+      ' outlets (minimum separation ', mouthsep, ' km)'
+    deallocate(mi, mj, w, key, forced, done, ord, col, tgt)
+  end subroutine aggregate_mouths
+
+  logical function is_prescribed(i,j)
+    implicit none
+    integer, intent(in) :: i, j
+    is_prescribed = .false.
+#ifdef NILE
+    if ( i == idamietta .and. j == jdamietta ) is_prescribed = .true.
+    if ( i == irosetta .and. j == jrosetta ) is_prescribed = .true.
+#endif
+#ifdef BLACKSEA
+    if ( i == idardanelli .and. j == jdardanelli ) is_prescribed = .true.
+#endif
+#ifdef AZOV
+    if ( i == ikerch .and. j == jkerch ) is_prescribed = .true.
+#endif
+  end function is_prescribed
 
   real function geodistance(latt1,lonn1,latt2,lonn2)
     implicit none

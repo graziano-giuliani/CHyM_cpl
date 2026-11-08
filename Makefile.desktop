@@ -12,6 +12,7 @@ APP = chymmain.x
 
 SRC = mod_chym_param.F90 \
       mod_chym_io.F90    \
+      mod_chym_reservoir.F90 \
       mod_chym_model.F90 \
       mod_chym_iface.F90 \
       chymmain.f90
@@ -37,6 +38,7 @@ clean:
 
 mod_chym_param.o: mod_chym_param.F90
 mod_chym_io.o: mod_chym_io.F90 mod_chym_param.o
-mod_chym_model.o: mod_chym_model.F90 mod_chym_param.o
+mod_chym_reservoir.o: mod_chym_reservoir.F90 mod_chym_param.o
+mod_chym_model.o: mod_chym_model.F90 mod_chym_param.o mod_chym_reservoir.o
 mod_chym_iface.o: mod_chym_iface.F90 mod_chym_param.o mod_chym_io.o mod_chym_model.o
 chymmain.o: chymmain.f90 mod_chym_param.o mod_chym_iface.o

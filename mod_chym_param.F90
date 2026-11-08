@@ -85,6 +85,12 @@ module mod_chym_param
   real, allocatable :: alfa(:,:)
   ! Mean discarge from previous rum (m**3/s)
   real, allocatable :: omdis(:,:)
+  logical :: has_omdis = .false.   ! omdis is a mean discharge (m3/s)
+  ! Reservoir table (empty: no reservoirs), initial filling (fraction of
+  ! capacity) of active reservoirs found empty, current model year
+  character(len=256) :: dnresv = ' '
+  real :: resfill = 0.5
+  integer :: chym_year = 9999
   ! Flow directions map
   integer, allocatable :: fmap(:,:)
   ! Acclivity map

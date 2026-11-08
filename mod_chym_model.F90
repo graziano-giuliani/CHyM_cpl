@@ -6,6 +6,7 @@ module mod_chym_model
 
   use, intrinsic :: iso_fortran_env
   use mod_chym_param
+  use mod_chym_reservoir
 
   implicit none
   private
@@ -37,6 +38,8 @@ module mod_chym_model
       real :: dm, area, deltat, h2oload, irtmp, hmin
       ! Daily water budget (m^3), double precision accumulators
       real(8) :: qin, qsea, qout, qsink, qirr, qmin, store0, store1
+      integer, save :: lastmon = -1, lastday = -1, lunres = 0
+      character(len=10) :: resdate
       real(8) :: daysec
 
       ! chym_dis accumulates, over the day, the volume (m^3) leaving each
@@ -58,7 +61,14 @@ module mod_chym_model
       qsink = 0.0d0
       qirr = 0.0d0
       qmin = 0.0d0
+      qres = 0.0d0
       store0 = routed_storage( )
+      ! Model year, for reservoirs coming into operation during the run
+      if ( imon == 1 .and. iday == 1 .and. &
+           .not. (lastmon == 1 .and. lastday == 1) .and. lastmon > 0 ) &
+        chym_year = chym_year + 1
+      lastmon = imon
+      lastday = iday
 
       do imin = 1, model_nsteps
         wkm1(:,:) = 0.0
@@ -69,7 +79,13 @@ module mod_chym_model
             if ( ilnd .ne. ocean .and. idir .ge. 1 .and. idir .le. 8 ) then
               ii = i+ir(idir)
               jj = j+jr(idir)
-              dm = min(port(i,j)*deltat*efficiency, h2o(i,j)*efficiency)
+              if ( res_active(resid(i,j)) ) then
+                ! Dam: release rule instead of the linear reservoir
+                dm = res_outflow(resid(i,j), h2o(i,j), deltat)
+                res(resid(i,j))%dmlast = dm
+              else
+                dm = min(port(i,j)*deltat*efficiency, h2o(i,j)*efficiency)
+              end if
               wkm1(i,j) = wkm1(i,j) - dm
               if ( luse(ii,jj) == ocean ) then
                 if ( chym_mask(ii,jj) == 1 ) then
@@ -114,6 +130,16 @@ module mod_chym_model
                  qmin = qmin + (hmin - h2o(i,j))
                  h2o(i,j) = hmin
                end if
+               if ( res_active(resid(i,j)) ) then
+                 ! Dam cell: evaporation and withdrawal from the
+                 ! reservoir; port reports the release.
+                 call res_update(resid(i,j), h2o(i,j),                  &
+                        wkm1(i,j)+res(resid(i,j))%dmlast+h2oload,       &
+                        res(resid(i,j))%dmlast, imon, deltat, .true.)
+                 bwet(i,j) = h2o(i,j) / chym_dx(i,j)
+                 port(i,j) = res(resid(i,j))%dmlast / deltat
+                 cycle
+               end if
                if ( farm(i,j) ) then
                  irtmp = irmonfac(imon)/deltat
                  ! Some water is not transmitted for irrigation
@@ -133,18 +159,31 @@ module mod_chym_model
       ! Daily mean discharge into each sea cell (m^3/s)
       chym_dis(:,:) = real(real(chym_dis(:,:),8)/daysec)
       store1 = routed_storage( )
+      if ( nres > 0 ) then
+        call res_daily(h2o, daysec, chym_year, imon, iday)
+        if ( lunres == 0 ) then
+          open(newunit=lunres, file='chym_reservoirs.txt', &
+               status='replace', action='write')
+          write(lunres,'(a)') '# year-mm-dd name storage_km3 inflow_m3s'// &
+            ' outflow_m3s losses_m3s mean_inflow_m3s k'
+        end if
+        write(resdate,'(i4.4,a,i2.2,a,i2.2)') chym_year,'-',imon,'-',iday
+        call res_report(lunres, resdate, daysec)
+      end if
 
       call coupler(imon,iday)
 
       ! Daily water budget of the routing, as mean fluxes in m^3/s.
-      ! residual = in + created - (sea + out + sinks + irrigation) - dS/dt
+      ! residual = in + created - (sea + out + sinks + irrigation
+      !            + reservoir losses) - dS/dt
       write(output_unit,fmt='(1x,A)') 'CHYM - Daily budget (m3/s): '// &
         '   runoff_in    to_sea   out_catch     sinks  irrigat.  '// &
-        'created     dS/dt  residual'
-      write(output_unit,fmt='(1x,A,8F10.1)') 'CHYM - Budget             : ', &
+        'created     dS/dt  residual reservoir'
+      write(output_unit,fmt='(1x,A,9F10.1)') 'CHYM - Budget             : ', &
         qin/daysec, qsea/daysec, qout/daysec, qsink/daysec, qirr/daysec, &
         qmin/daysec, (store1-store0)/daysec, &
-        (qin+qmin-qsea-qout-qsink-qirr-(store1-store0))/daysec
+        (qin+qmin-qsea-qout-qsink-qirr-qres-(store1-store0))/daysec, &
+        qres/daysec
 
       write(output_unit,fmt='(1x,A,F16.2)')"CHYM - Discharge max value: ", &
                              maxval(port)

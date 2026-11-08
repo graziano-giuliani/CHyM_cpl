@@ -53,9 +53,9 @@ module mod_chym_io
     integer :: lun
 
     namelist /iniparam/ model_nsteps, efficiency, &
-            nfarm, ifarm, irloss, irmonfac, riverrad, mouthsep
+            nfarm, ifarm, irloss, irmonfac, riverrad, mouthsep, resfill
     namelist /inputparam/ isread, iswrit, nstep, &
-            dnres, dnini, dnout, dnstt
+            dnres, dnini, dnout, dnstt, dnresv
     namelist /timeparam/ sdate, edate, calendar
 
 !-----------------------------------------------------------------------
@@ -99,6 +99,7 @@ module mod_chym_io
       call mpi_abort(mycomm,1,iretval)
     end if
     jahr1 = sdate/1000000
+    chym_year = int(jahr1)   ! advanced on each 1 January (reservoirs)
     jahr2 = (sdate-jahr1*1000000)/10000
     jahr3 = (sdate-(jahr1*1000000+jahr2*10000))/100
     jahr4 = sdate-(jahr1*1000000+jahr2*10000+jahr3*100)
@@ -195,6 +196,7 @@ module mod_chym_io
     istat = nf90_inq_varid(ncid, 'dis', varid)
     if ( istat == nf90_noerr ) then 
       call nio_check(nf90_get_var(ncid, varid, omdis),__LINE__)
+      has_omdis = .true.
     else
       omdis = riverrad
     end if

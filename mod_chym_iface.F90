@@ -9,6 +9,7 @@ module mod_chym_iface
   use mod_chym_param
   use mod_chym_io
   use mod_chym_model
+  use mod_chym_reservoir
 
   implicit none
 
@@ -32,6 +33,7 @@ module mod_chym_iface
       integer, intent(in), optional :: mpiCommunicator
       integer :: iprov, ierr, irank, nproc
       character(len=256) :: namelistfile
+      real(8) :: resadd
 
 !-----------------------------------------------------------------------
 !     Read configuration parameters
@@ -92,6 +94,18 @@ module mod_chym_iface
 
       write(output_unit, *) 'CHYM - Initialize variables'
       call read_init()
+
+      ! Reservoirs: locate the dams, fill the active ones found empty
+      ! (cold start, or a restart written without reservoirs) and set the
+      ! first release from the actual storage.
+      call res_init(dnresv, chym_year)
+      if ( nres > 0 ) then
+        resadd = res_fill(h2o, resfill)
+        if ( resadd > 0.0d0 ) write(output_unit,'(1x,a,f10.3,a)') &
+          'CHYM - Reservoirs initially filled with ', resadd*1.0d-9, &
+          ' km3 (not counted in the budget)'
+        call res_start(h2o)
+      end if
 
 !-----------------------------------------------------------------------
 !     Open output files

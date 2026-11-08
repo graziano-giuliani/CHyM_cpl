@@ -1,0 +1,50 @@
+# CHyM reservoir table generated from Global Dam Watch GDW_barriers_v1_0
+# dams with capacity >= 1000 MCM draining to the Mediterranean or Black Sea
+# from GDW: lon lat (on the river network) cap_km3 surf_km2 year0 qmean_m3s
+# upa_km2: CHyM upstream area of the chosen cell (GDW catchment in the comment)
+# defaults, NOT from GDW: evap_mm_yr (400 Black Sea, 800 Mediterranean),
+#   use_m3s 0, opmon (3 Black Sea, 10 Mediterranean)
+# year0 = 1900 where GDW gives no year; lines starting with '#' are ignored
+#
+# name lon lat upa_km2 cap_km3 surf_km2 evap_mm_yr use_m3s year0 opmon qmean_m3s
+# unnamed_Russia_7428                40.777  47.110    37241   4.396    205.0   400    0  1900   3     97.1   [CHECK: NO YEAR IN GDW, set year0 by hand]   # , Black Sea, main use ?, DOR 144%, GDW catchment 48328 km2, cell 1.9 km away
+# unnamed_Russia_7530                39.137  51.548    17131   1.110     55.9   400    0  1900   3     84.3   [CHECK: NO YEAR IN GDW, set year0 by hand]   # , Black Sea, main use ?, DOR 42%, GDW catchment 21273 km2, cell 9.4 km away
+unnamed_Turkey_27764               35.271  38.905    14033   1.595     78.7   400    0  2004   3     77.5   # , Black Sea, main use ?, DOR 65%, GDW catchment 15556 km2, cell 3.4 km away
+# Pechenezhkoye_33673                36.982  49.883     8380   1.093     55.1   400    0  1900   3     30.0   [CHECK: NO YEAR IN GDW, set year0 by hand]   # , Black Sea, main use ?, DOR 116%, GDW catchment 8487 km2, cell 1.8 km away
+# Izvorul_Muntelui_1374              26.107  46.941     2770   1.230     19.9   400    0  1961   3     47.7   [Danube basin, left out]   # Bistrita, Black Sea, main use Hydroelectricity, DOR 82%, GDW catchment 4060 km2, cell 13.8 km away
+Sureyyabey_7063                    35.548  40.043     6184   1.310     29.8   400    0  2011   3     22.1   # Cekerek, Black Sea, main use Irrigation, DOR 188%, GDW catchment 5167 km2, cell 3.3 km away
+# Deriner_7047                       41.871  41.170    11735   1.969     19.1   400    0  2013   3    153.5   [CHECK CELL: CHyM upa 11735 vs GDW 18533]   # Coruh, Black Sea, main use Hydroelectricity, DOR 41%, GDW catchment 18533 km2, cell 3.3 km away
+# Iron_Gate_1_285                    22.531  44.673   558688   2.550    118.8   400    0  1972   3   5506.2   [Danube basin, left out]   # Danube, Black Sea, main use Hydroelectricity, DOR 2%, GDW catchment 560682 km2, cell 3.8 km away
+Kakhovskaya_54                     33.373  46.781   446966  18.180   2098.2   400    0  1955   3   1499.9   # Dniepr, Black Sea, main use Hydroelectricity, DOR 38%, GDW catchment 487441 km2, cell 3.6 km away
+Dniepr_280                         35.090  47.870   427842   3.320    131.9   400    0  1932   3   1606.7   # Dniepr, Black Sea, main use Hydroelectricity, DOR 7%, GDW catchment 469069 km2, cell 3.9 km away
+Dnieprod_Zerzhinsk_279             34.543  48.556   399859   2.460    508.4   400    0  1964   3   1773.7   # Dniepr, Black Sea, main use Hydroelectricity, DOR 4%, GDW catchment 440022 km2, cell 5.6 km away
+Kremenchug_51                      33.247  49.081   348466  13.520   1855.1   400    0  1960   3   1618.8   # Dniepr, Black Sea, main use Hydroelectricity, DOR 26%, GDW catchment 388064 km2, cell 2.2 km away
+Kanev_278                          31.476  49.770   303250   2.480    471.7   400    0  1976   3   1515.8   # Dniepr, Black Sea, main use Hydroelectricity, DOR 5%, GDW catchment 342555 km2, cell 5.4 km away
+Kiev_276                           30.524  50.587   294427   3.730    638.5   400    0  1964   3   1171.4   # Dniepr, Black Sea, main use Hydroelectricity, DOR 10%, GDW catchment 245547 km2, cell 4.5 km away
+Dubossary_1373                     29.122  47.279    55964   3.000     34.8   400    0  1954   3    293.0   # Dniestr, Black Sea, main use Hydroelectricity, DOR 32%, GDW catchment 53758 km2, cell 3.7 km away
+Dniestr_1364                       27.455  48.595    35031   3.000     75.4   400    0  1981   3    254.1   # Dniestr, Black Sea, main use Hydroelectricity, DOR 37%, GDW catchment 40564 km2, cell 2.5 km away
+Tsimliansk_53                      42.110  47.610   232119  24.000   2260.5   400    0  1952   3    668.8   # Don, Black Sea, main use Hydroelectricity, DOR 114%, GDW catchment 253931 km2, cell 2.2 km away
+Inguri_3969                        42.031  42.760     2573   1.100      4.9   400    0  1980   3    104.7   # Inguri, Black Sea, main use Hydroelectricity, DOR 33%, GDW catchment 3132 km2, cell 3.3 km away
+Kilickaya_1489                     38.203  40.238     9695   1.400     11.3   400    0  1989   3     57.7   # Kelkit, Black Sea, main use Irrigation, DOR 77%, GDW catchment 7836 km2, cell 4.0 km away
+Altinkaya_1457                     35.722  41.361    83731   5.760     73.8   400    0  1988   3    242.9   # Kizilirmak, Black Sea, main use Hydroelectricity, DOR 75%, GDW catchment 74555 km2, cell 3.4 km away
+Boyabat_7045                       35.005  41.341    74060   3.557     58.2   400    0  2012   3    207.9   # Kizilirmak, Black Sea, main use Hydroelectricity, DOR 54%, GDW catchment 64804 km2, cell 1.4 km away
+Hirfanli_294                       33.518  39.272    33381   5.980    184.0   400    0  1959   3    110.3   # Kizilirmak, Black Sea, main use Hydroelectricity, DOR 172%, GDW catchment 26529 km2, cell 2.0 km away
+Krasnodar_284                      39.116  44.985    42850   3.050    269.8   400    0  1975   3    434.2   # Kuban, Black Sea, main use Irrigation, DOR 22%, GDW catchment 44981 km2, cell 4.1 km away
+# Stinca_Costesti_1371               27.226  47.841    15327   1.400     41.4   400    0  1979   3    139.8   [Danube basin, left out]   # Prut, Black Sea, main use Flood control, DOR 32%, GDW catchment 12168 km2, cell 3.4 km away
+Sariyar_1495                       31.413  40.040    50084   1.900     44.6   400    0  1956   3    150.3   # Sakarya, Black Sea, main use Hydroelectricity, DOR 40%, GDW catchment 47411 km2, cell 7.4 km away
+Hasan_Ugurlu_4123                  36.647  40.934    38343   1.074      6.7   400    0  1981   3    178.8   # Yesilirmak, Black Sea, main use ?, DOR 19%, GDW catchment 35724 km2, cell 1.3 km away
+# Almus_1482                         36.907  40.407      672   1.080     20.2   400    0  1966   3     13.9   [CHECK CELL: CHyM upa 672 vs GDW 2371]   # Yesilirmak, Black Sea, main use ?, DOR 247%, GDW catchment 2371 km2, cell 2.8 km away
+# unnamed_Greece_7566                23.226  41.141    12095   1.060     53.5   800    0  1900  10     82.3   [CHECK: NO YEAR IN GDW, set year0 by hand]   # , Mediterranean, main use ?, DOR 41%, GDW catchment 11722 km2, cell 8.8 km away
+# Kremasta_1528                      21.498  38.889     2025   4.750     62.6   800    0  1965  10     56.9   [CHECK CELL: CHyM upa 2025 vs GDW 3681]   # Acheloos, Mediterranean, main use Hydroelectricity, DOR 265%, GDW catchment 3681 km2, cell 0.7 km away
+# Karacaoren_1_1567                  30.833  37.371     8160   1.230     26.5   800    0  1989  10     19.3   [CHECK CELL: CHyM upa 8160 vs GDW 5310]   # Aksu, Mediterranean, main use Irrigation, DOR 202%, GDW catchment 5310 km2, cell 0.8 km away
+Polyphyto_1488                     22.100  40.301     6875   2.244     56.3   800    0  1974  10     53.3   # Aliakmon Polyphyto, Mediterranean, main use Hydroelectricity, DOR 134%, GDW catchment 5844 km2, cell 1.6 km away
+Adiguzel_1546                      29.207  38.161     9678   1.190     13.8   800    0  1993  10     11.3   # Buyuk Menderes, Mediterranean, main use Irrigation, DOR 333%, GDW catchment 8928 km2, cell 3.0 km away
+# Aslantas_1571                      36.270  37.273     1670   1.150     37.2   800    0  1984  10    178.6   [CHECK CELL: CHyM upa 1670 vs GDW 14963]   # Ceyhan, Mediterranean, main use ?, DOR 20%, GDW catchment 14963 km2, cell 2.2 km away
+Fierza_1432                        20.045  42.251     9301   2.700     39.4   800    0  1979  10    203.6   # Drin, Mediterranean, main use Hydroelectricity, DOR 42%, GDW catchment 10781 km2, cell 5.1 km away
+Serre_Poncon_1382                   6.277  44.473     3710   1.300     17.7   800    0  1960  10     51.8   # Durance, Mediterranean, main use Irrigation, DOR 80%, GDW catchment 3564 km2, cell 2.0 km away
+Mequinenza_1456                     0.272  41.369    47109   1.534     47.9   800    0  1966  10    469.9   # Ebro, Mediterranean, main use Hydroelectricity, DOR 10%, GDW catchment 57097 km2, cell 2.5 km away
+Demirkopru_1533                    28.316  38.615     6519   1.320     35.9   800    0  1960  10     24.3   # Gediz, Mediterranean, main use Irrigation, DOR 172%, GDW catchment 6430 km2, cell 4.4 km away
+Ermenek_7049                       32.967  36.568     1961   4.582     50.0   800    0  2012  10     33.5   # Goksu, Mediterranean, main use Hydroelectricity, DOR 434%, GDW catchment 2176 km2, cell 1.3 km away
+Seyhan_1576                        35.340  37.040    15266   1.200     36.8   800    0  1956  10    123.7   # Seyhan, Mediterranean, main use ?, DOR 31%, GDW catchment 19388 km2, cell 24.2 km away
+# Catalan_1572                       35.279  37.200     4373   2.130     62.5   800    0  1997  10     93.8   [CHECK CELL: CHyM upa 4373 vs GDW 15268]   # Seyhan, Mediterranean, main use Hydroelectricity, DOR 72%, GDW catchment 15268 km2, cell 20.1 km away
+Grancarevo_1416                    18.497  42.736      240   1.280     22.4   800    0  1967  10      9.9   # Trebisnjica, Mediterranean, main use Hydroelectricity, DOR 408%, GDW catchment 241 km2, cell 6.6 km away

@@ -11,7 +11,7 @@
 /
 
 &inputparam
- isread = 1,
+ isread = 0,
  iswrit = 1,
  nstep = 5500,
  dnini = 'chym_rst_loop0.nc',

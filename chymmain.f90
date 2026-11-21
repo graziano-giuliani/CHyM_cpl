@@ -30,9 +30,9 @@ program chymmain
   if (pstep == 0) pstep = pstep+1
   ! Fake runoff to test
   chym_runoff = 1.0e-7
-  call chym_run(pstep, nstep, .false., 1, 1)
+  call chym_run(pstep, nstep, 1, 1)
   pstep = pstep + 1
-  call chym_run(pstep, nstep, .false., 1, 2)
+  call chym_run(pstep, nstep, 1, 2)
 
   call chym_finalize( )
 

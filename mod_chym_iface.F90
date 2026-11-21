@@ -141,14 +141,13 @@ module mod_chym_iface
 !       Run the model
 !-----------------------------------------------------------------------
 
-    subroutine chym_run(istart, iend, restarted, imon, iday)
+    subroutine chym_run(istart, iend, imon, iday)
       implicit none
       integer, intent(in) :: istart
       integer, intent(in) :: iend
-      logical, intent(in) :: restarted
       integer, intent(in) :: imon , iday
 
-      integer :: istep, idir, i, j, ii, jj
+      integer :: istep
 
 !-----------------------------------------------------------------------
 !     Run the model

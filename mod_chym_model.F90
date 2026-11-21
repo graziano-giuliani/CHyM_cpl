@@ -243,7 +243,6 @@ module mod_chym_model
     subroutine coupler(imon,iday)
       implicit none
       integer, intent(in) :: imon, iday
-      integer :: i, j
       real :: tmp
 
 #ifdef AZOV
